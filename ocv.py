@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-# @Date    : 2020-11-13
+# @Date    : 2020-11-16
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.0.3
+# @Version : 0.0.4
 
+import os
 import math
 import numpy as np
 import cv2
@@ -20,11 +21,22 @@ except ImportError:
 DEBUG_MODE = True
 
 #####################################################################
+# Math
+#####################################################################
+
+def distance(pnt1, pnt2):
+    # return np.square(numpy.sum(numpy.square(vec1 - vec2)))
+    return np.linalg.norm(pnt1 - pnt2)
+
+#####################################################################
 # IO module
 #####################################################################
 
 # from cv2 import imread
 def imread(uri, as_gray=True):
+    if DEBUG_MODE:
+        assert os.path.exists(uri)
+
     mode = cv2.IMREAD_GRAYSCALE
     if not as_gray:
         mode = cv2.IMREAD_COLOR  # cv2.IMREAD_UNCHANGED
@@ -103,13 +115,18 @@ from cv2 import add  # 饱和操作（不同于np.add）
 from cv2 import addWeighted  # 透明感
 # def addWeighted(img1, 0.7, img2, 0.3, 0)
 
+def _split_thresholds(thresholds):
+    return [thresholds, 255] if isinstance(thresholds, int) else thresholds
+
 def binary(im, thresholds, invert=False):
-    """ type_:
-            cv2.THRESH_BINARY
-            cv2.THRESH_BINARY_INV
-            cv2.THRESH_TRUNC
-            cv2.THRESH_TOZERO
-            cv2.THRESH_TOZERO_INV
+    """
+    thresholds: int or list(thresh, maxval)
+    type_:
+        cv2.THRESH_BINARY
+        cv2.THRESH_BINARY_INV
+        cv2.THRESH_TRUNC
+        cv2.THRESH_TOZERO
+        cv2.THRESH_TOZERO_INV
     """
     type_ = cv2.THRESH_BINARY  # 0
     if invert:
@@ -117,6 +134,8 @@ def binary(im, thresholds, invert=False):
     if thresholds == "otsu":
         type_ += cv2.THRESH_OTSU  # 8
         thresholds = [0,255]
+    else:
+        thresholds = _split_thresholds(thresholds)
 
     thresh, maxval = thresholds
     _, im2 = cv2.threshold(im, thresh, maxval, type_)
@@ -217,9 +236,50 @@ blackhat = lambda im, k: cv2.morphologyEx(im, cv2.MORPH_BLACKHAT, k)
 # Feature 特征处理
 #####################################################################
 
-def find_edges(im, thresholds):
-    """ thresholds: [thresh, maxval] """
+def canny(im, thresholds):
+    """ thresholds: int or list(thresh, maxval) """
+    thresholds = _split_thresholds(thresholds)
     return cv2.Canny(im, *thresholds)
+
+edges = canny
+
+from collections import namedtuple
+# Point = namedtuple("Point", ["x", "y"])
+Line = namedtuple("Line", ["a", "b"])
+Circle = namedtuple("Circle", ["cx","cy","r"])
+
+def find_lines(im, rho, threshold, theta=np.pi/180, min_length=0, max_gap=0):
+    """ 统计概率霍夫直线变换 """
+    lines = cv2.HoughLinesP(im, rho, theta, threshold,
+                        minLineLength=min_length, maxLineGap=max_gap)
+    # im:  要检测的二值图（一般是阈值分割或边缘检测后的图）
+    # rho: 距离r的精度，值越大，考虑越多的线（控制所监测的直线的合并）
+    # theta:  角度θ的精度，值越小，考虑越多的线
+    # thresh: 累加数阈值，值越小，考虑越多的线
+    # minLineLength: 最短长度阈值，比这个长度短的线会被排除
+    # maxLineGap:    直线间的最大距离
+    # Example: lines = cv2.HoughLinesP(edges, 0.8, np.pi/180, 90, minLineLength=50, maxLineGap=10)
+    return None if lines is None else [Line(p[:2], p[2:]) for p in lines[:,0]]
+
+def find_circles(im, r_dist, threshold=100, canny_level=100, r_min=0, r_max=0):
+    """
+    return a list of circle info: [(cx,cy,r), ...]
+    canny_level: param1
+    threshold:   param2
+    """
+    # https://docs.opencv.org/master/dd/d1a/group__imgproc__feature.html#ga47849c3be0d0406ad3ca45db65a25d2d
+    if DEBUG_MODE:
+        assert im.dtype == "uint8"
+    circles = cv2.HoughCircles(im, cv2.HOUGH_GRADIENT, dp=1, minDist=r_dist,
+                            param1=canny_level, param2=threshold,
+                            minRadius=r_min, maxRadius=r_max)
+    if circles is None:
+        return
+    if DEBUG_MODE:
+        print(f">>> 共计检测到【{len(circles[0,:])}】个Circle对象")
+    return [Circle(*i) for i in circles[0,:]]
+
+# find_circles(im, 200, 300, 50)
 
 def match_template(im, template, threshold):
     """ 匹配符合最低阈值的全部点信息
@@ -287,6 +347,8 @@ def find_cnts(im, mode=0, method=1):
     # hierarchy: 各层轮廓的索引
     # _, cnts, hierarchy = list_ret
     cnts = list_ret[-2]
+    if DEBUG_MODE:
+        print(f">>> 共计检测到【{len(cnts)}】个Contours对象")
     return cnts
 
 def list2cnts(list_pnts):
@@ -374,7 +436,26 @@ def approx_convex(cnt):  # 凸包
         - returnPoints: 默认值为True，它会返回凸包上点的坐标，如果设置为False，就会返回与凸包点对应的轮廓上的点
     """
     hull = cv2.convexHull(cnt)
-    return hull
+    return hull[:,0]
+
+def convex_defects(cnt):
+    hull = cv2.convexHull(cnt, returnPoints=False)
+    defects = cv2.convexityDefects(cnt, hull)
+    defect_pts = []
+    for i in range(defects.shape[0]):
+        # 特征向量：
+        # * 起始点（startPoint）
+        # * 结束点(endPoint)
+        # * 距离convexity hull最远点(farPoint)
+        # * 最远点到convexity hull的距离(depth)
+        s,e,f,d = defects[i,0]
+        # start = tuple(cnt[s][0])
+        # end = tuple(cnt[e][0])
+        far = tuple(cnt[f][0])
+        # cv2.line(img,start,end,[0,255,0],2)
+        # cv2.circle(img,far,5,[0,0,255],-1)
+        defect_pts.append((far, d))
+    return defect_pts
 
 #####################################################################
 # 图形处理
@@ -403,6 +484,14 @@ def cnt_elongation(cnt):
     ratio = h / w  # range: [0,1]
     return ratio
 
+def dist_to_cnt(point, cnt):
+    # If False, it finds whether the point is inside or outside
+    # or on the contour (it returns +1, -1, 0 respectively).
+    return cv2.pointPolygonTest(cnt, point, True)
+
+def inside_cnt(point, cnt):
+    return cv2.pointPolygonTest(cnt, point, False)
+
 #####################################################################
 
 class Blob:
@@ -426,6 +515,10 @@ class Blob:
     @property
     def cy(self):
         return self._cy
+
+    @property
+    def cnt(self):
+        return self._cnt
 
     def rotation(self):
         """ deprecated: 并不保证准确 """
@@ -464,8 +557,8 @@ class Blob:
     def circle(self):
         return approx_circle(self._cnt)
 
-
 def find_blobs(im, thresholds=None, invert=False):
+    """ thresholds: int or list(thresh, maxval) """
     if thresholds:
         im2 = binary(im, thresholds, invert)
     elif invert:
@@ -473,8 +566,15 @@ def find_blobs(im, thresholds=None, invert=False):
     else:
         im2 = im
     list_cnts = find_cnts(im2, 1, 1)
-    print(f">>> 共计检测到【{len(list_cnts)}】个Blob对象")
-    return [Blob(i) for i in list_cnts]
+    list_blobs = []
+    for cnt in list_cnts:
+        try:
+            list_blobs.append(Blob(cnt))
+        except ZeroDivisionError:
+            pass
+    if DEBUG_MODE:
+        print(f">>> 共计检测到【{len(list_blobs)}】个Blob对象")
+    return list_blobs
 
 #####################################################################
 # Drawing
@@ -489,41 +589,81 @@ def find_blobs(im, thresholds=None, invert=False):
 + thickness: 控制线的粗细像素。
 """
 
-# def _drawing_init(img, color, thickness):
+def draw_polygon(img, list_pnts, color=None, thickness=1, fill=False):
+    # if DEBUG_MODE:
+    #     list_pnts.dtype == ""
+    if color is None:
+        color = (255,0,0) if img.ndim == 3 else 255
+    list_pnts = np.array([(int(p[0]), int(p[1])) for p in list_pnts])
+    cv2.polylines(img, [list_pnts], True, color, thickness, lineType=cv2.LINE_AA)
+
+def draw_line(img, a, b, color=None, thickness=1):
+    if color is None:
+        color = (255,0,0) if img.ndim == 3 else 255
+    cv2.line(img, tuple(int(i) for i in a), tuple(int(i) for i in b),
+            color, thickness, lineType=cv2.LINE_AA)  # 抗锯齿线型
+
+def draw_lines(img, list_pnts, color=None, thickness=1, fill=False):
+    if color is None:
+        color = (255,0,0) if img.ndim == 3 else 255
+    list_pnts = np.array([(int(p[0]), int(p[1])) for p in list_pnts])
+    cv2.polylines(img, [list_pnts], False, color, thickness, lineType=cv2.LINE_AA)
 
 def draw_rectangle2(img, top_left, bottom_right, color=None, thickness=1, fill=False):
     if color is None:
         color = (255,0,0) if img.ndim == 3 else 255
-    cv2.rectangle(img, top_left, bottom_right, color, thickness)
+    cv2.rectangle(img, tuple(int(i) for i in top_left),
+            tuple(int(i) for i in bottom_right), color, thickness, lineType=cv2.LINE_AA)
 
 def draw_rectangle(img, x, y, w, h, color=None, thickness=1, fill=False):
     draw_rectangle2(img, (x,y), (x+w,y+h), color, thickness, fill)
 
-def draw_line(img, top_left, bottom_right, color=None, thickness=1):
-    if color is None:
-        color = (255,0,0) if img.ndim == 3 else 255
-    cv2.line(img, top_left, bottom_right, color, thickness)
-
 def draw_circle(img, x, y, radius, color=None, thickness=1, fill=False):
     if color is None:
         color = (255,0,0) if img.ndim == 3 else 255
-    cv2.circle(img, [x,y], radius, color, thickness)
+    cv2.circle(img, (int(x),int(y)), int(radius), color, thickness, lineType=cv2.LINE_AA)
 
 def draw_ellipse(img, cx, cy, rx, ry, rotation, color=None, thickness=1, fill=False):
     if color is None:
         color = (255,0,0) if img.ndim == 3 else 255
     startAngle, endAngle = 0, 360
-    cv2.ellipse(img, (cx,cy), (rx,ry), rotation, startAngle, endAngle, color, thickness)
+    cv2.ellipse(img, (int(cx),int(cy)), (int(rx),int(ry)), rotation, startAngle, endAngle,
+        color, thickness, lineType=cv2.LINE_AA)
 
 def draw_string(img, x, y, text, scale=1, color=None, thickness=1, font=cv2.FONT_HERSHEY_SIMPLEX):
     if color is None:
         color = (255,0,0) if img.ndim == 3 else 255
-    cv2.putText(img, text, (x,y), font, scale, color, thickness)
+    cv2.putText(img, text, (int(x),int(y)), font, scale, color, thickness)
+
+def draw_contours(img, list_cnts, color=None, thickness=1, fill=False):
+    if color is None:
+        color = (255,0,0) if img.ndim == 3 else 255
+    cv2.drawContours(img, list_cnts, -1, color, thickness, lineType=cv2.LINE_AA)
+
+def draw_points(img, list_points, color=None, thickness=1, fill=False):
+    if color is None:
+        color = (255,0,0) if img.ndim == 3 else 255
+    cv2.drawKeypoints(img, list_points, None, color)
 
 def draw_cross(img, x, y, color=None, size=5, thickness=1):
     if color is None:
         color = (255,0,0) if img.ndim == 3 else 255
+    x,y = int(x), int(y)
     h_0, h_1 = (x-size,y), (x+size,y)
     v_0, v_1 = (x,y-size), (x,y+size)
-    cv2.line(img, h_0, h_1, color, thickness)
-    cv2.line(img, v_0, v_1, color, thickness)
+    cv2.line(img, h_0, h_1, color, thickness, lineType=cv2.LINE_8)
+    cv2.line(img, v_0, v_1, color, thickness, lineType=cv2.LINE_8)
+
+
+#####################################################################
+
+COLOR_RANGES_HSV = {
+    "red": [(0, 50, 10), (10, 255, 255)],
+    "orange": [(10, 50, 10), (25, 255, 255)],
+    "yellow": [(25, 50, 10), (35, 255, 255)],
+    "green": [(35, 50, 10), (80, 255, 255)],
+    "cyan": [(80, 50, 10), (100, 255, 255)],
+    "blue": [(100, 50, 10), (130, 255, 255)],
+    "purple": [(130, 50, 10), (170, 255, 255)],
+    "red ": [(170, 50, 10), (180, 255, 255)]
+}

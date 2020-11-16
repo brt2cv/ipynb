@@ -10,6 +10,7 @@ user/
 .ipynb_checkpoints/
 __pycache__/
 *.py[cod]
+未命名*.ipynb
 
 *.user
 *.swp

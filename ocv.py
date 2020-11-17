@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-11-16
+# @Date    : 2020-11-17
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.0.4
+# @Version : 0.0.5
 
 import os
 import math
@@ -33,6 +33,8 @@ def distance(pnt1, pnt2):
 #####################################################################
 
 # from cv2 import imread
+from cv2 import imwrite as imsave
+
 def imread(uri, as_gray=True):
     if DEBUG_MODE:
         assert os.path.exists(uri)
@@ -42,10 +44,45 @@ def imread(uri, as_gray=True):
         mode = cv2.IMREAD_COLOR  # cv2.IMREAD_UNCHANGED
     return cv2.imread(uri, mode)
 
-from cv2 import imwrite as imsave
-
 def float2ubyte(im):
     return (im * 255).astype(np.uint8)
+
+def split(im):
+    return cv2.split(im)
+
+def merge(bands):
+    return cv2.merge(bands)
+
+# 色彩空间
+def rgb2gray(im):
+    return cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+
+def gray2rgb(im):
+    return cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
+
+def rgb2bgr(im):
+    return cv2.cvtColor(im, cv2.COLOR_RGB2BGR)
+
+def bgr2rgb(im):
+    return cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+
+def rgb2hsv(im):
+    return cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
+
+def hsv2rgb(im):
+    return cv2.cvtColor(im, cv2.COLOR_HSV2BGR)
+
+def rgb2lab(im):
+    return cv2.cvtColor(im, cv2.COLOR_BGR2LAB)
+
+def lab2rgb(im):
+    return cv2.cvtColor(im, cv2.COLOR_Lab2BGR)
+
+def rgb2yuv(im):
+    return cv2.cvtColor(im, cv2.COLOR_BGR2YUV)
+
+def yuv2rgb(im):
+    return cv2.cvtColor(im, cv2.COLOR_YUV2BGR)
 
 #####################################################################
 # Image Transfrom
@@ -84,6 +121,28 @@ def crop2(im, top_left, bottom_right):
     x2, y2 = bottom_right
     return crop(im, (x, y, x2-x, y2-y))
 
+# https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#gacea54f142e81b6758cb6f375ce782c8d
+def sobel(im, dx, dy, ksize=3):
+    """
+    dx,dy: 求导阶数，0表示不求导。
+    ksize: size of the extended Sobel kernel; it must be 1, 3, 5, or 7.
+    """
+    return cv2.Sobel(im, -1, dx, dy, ksize=ksize)
+
+def scharr(im, dx, dy):
+    """ Kernal = [-3 0 3 -10 0 10 -3 0 3] """
+    # 虽然Sobel算子可以有效的提取图像边缘，但是对图像中较弱的边缘提取效果较差。
+    # 因此为了能够有效的提取出较弱的边缘，需要将像素值间的差距增大，因此引入Scharr算子。
+    # Scharr算子是对Sobel算子差异性的增强，因此两者之间的在检测图像边缘的原理和使用方式上相同。
+    # Scharr算子的边缘检测滤波的尺寸为3×3，因此也有称其为Scharr滤波器。
+    return cv2.Scharr(im, -1, dx, dy)
+
+def laplacian(im, ksize=1):
+    """ 二阶导数计算梯度 """
+    return cv2.Laplacian(im, -1, ksize=ksize)
+
+gradient = scharr
+
 #####################################################################
 # Pixel
 #####################################################################
@@ -112,8 +171,16 @@ def bitwise_and(im_arr, mask):
 # def divide(src1, src2, dst=None, scale=None, dtype=None)
 
 from cv2 import add  # 饱和操作（不同于np.add）
-from cv2 import addWeighted  # 透明感
+# from cv2 import addWeighted  # 透明感
 # def addWeighted(img1, 0.7, img2, 0.3, 0)
+
+def add2(img1, img2, weights=0.5):
+    """ weights: float(0.7) for img1, or list([7,5] for weights) """
+    if isinstance(weights, float):
+        w1, w2 = weights, 1-weights
+    else:
+        w1, w2 = weights
+    return cv2.addWeighted(img1, w1, img2, w2, 0)
 
 def _split_thresholds(thresholds):
     return [thresholds, 255] if isinstance(thresholds, int) else thresholds
@@ -171,31 +238,44 @@ def contrast(im, bright, contrast):
 
 #####################################################################
 # Filters
+# https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html
 #####################################################################
 
-def gaussian(im, sigma):
+def gaussian(im, k, sigma=0):
     """
-    sigma: scalar or sequence of scalars
-    ksize.width和ksize.height必须为正奇数，也可以为零，然后根据sigma计算得出
-    sigmas可以为零，则分别从ksize.width和ksize.height计算得出
+    ksize: scalar or tuple of scalars
+    参数3: σx值越大，模糊效果越明显。
     """
-    if isinstance(sigma, int):
-        sigma_x = sigma_y = sigma
-    else:
-        sigma_x, sigma_y = sigma
-    return cv2.GaussianBlur(im, None, sigma_x, sigmaY=sigma_y)
+    # 高斯滤波相比均值滤波效率要慢，但可以有效消除高斯噪声，能保留更多的图像细节。
+    if isinstance(k, int):
+        k = (k, k)
+    elif DEBUG_MODE:
+        assert isinstance(k, tuple)
+    # ksize.width和ksize.height必须为正奇数，也可以为零，然后根据sigma计算得出
+    # sigma_x可以为零，则分别从ksize.width和ksize.height计算得出
+    return cv2.GaussianBlur(im, k, sigma)
 
-def median(im, k: int):
+def median(im, ksize: int):
     """ k: 必须为奇数 """
-    assert k % 2, "k值必须为奇数"
-    return cv2.medianBlur(im, k)
+    # 中值滤波就是用区域内的中值来代替本像素值，所以那种孤立的斑点，如0或255很容易消除掉，
+    # 适用于去除椒盐噪声和斑点噪声。
+    # 中值是一种非线性操作，效率相比前面几种线性滤波要慢。
+    assert ksize % 2, "k值必须为奇数"
+    return cv2.medianBlur(im, ksize)
 
-def mean(im, k: tuple):
+def mean(im, kernal: tuple):
     """ 均值滤波 """
-    return cv2.blur(im, k)
+    return cv2.blur(im, kernal)
+
+def bilateral(im, d, sigma_color, sigma_space):
+    """ 双边滤波 """
+    # 模糊操作基本都会损失掉图像细节信息，尤其前面介绍的线性滤波器，图像的边缘信息很难保留下来。
+    # 然而，边缘（edge）信息是图像中很重要的一个特征，所以这才有了双边滤波。
+    return cv2.bilateralFilter(im, d, sigma_color, sigma_space)
 
 #####################################################################
 # Morpholopy 形态学操作
+# https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html
 #####################################################################
 
 KERNEL_SHAPE_OPENCV = {
@@ -264,13 +344,17 @@ def find_lines(im, rho, threshold, theta=np.pi/180, min_length=0, max_gap=0):
 def find_circles(im, r_dist, threshold=100, canny_level=100, r_min=0, r_max=0):
     """
     return a list of circle info: [(cx,cy,r), ...]
-    canny_level: param1
-    threshold:   param2
+    threshold:   param2, 数值越大，圆度要求越高
+    canny_level: param1，参数越大，匹配成功度越高，且拟合程度更优
     """
     # https://docs.opencv.org/master/dd/d1a/group__imgproc__feature.html#ga47849c3be0d0406ad3ca45db65a25d2d
     if DEBUG_MODE:
         assert im.dtype == "uint8"
-    circles = cv2.HoughCircles(im, cv2.HOUGH_GRADIENT, dp=1, minDist=r_dist,
+    try:
+        method = cv2.HOUGH_GRADIENT_ALT
+    except AttributeError:
+        method = cv2.HOUGH_GRADIENT
+    circles = cv2.HoughCircles(im, method, dp=1, minDist=r_dist,
                             param1=canny_level, param2=threshold,
                             minRadius=r_min, maxRadius=r_max)
     if circles is None:
@@ -314,7 +398,6 @@ def match_template(im, template, threshold):
                 break
         if new_group:
             list_matches.append(point)
-
     return list_matches
 
 def find_template(im, template):
@@ -333,7 +416,7 @@ def find_cnts(im, mode=0, method=1):
         - cv2.RETR_EXTERNAL 表示只检测外轮廓
         - cv2.RETR_LIST 检测的轮廓不建立等级关系
         - cv2.RETR_CCOMP 建立两个等级的轮廓，上面的一层为外边界，里面的一层为内孔的边界信息。如果内孔内还有一个连通物体，这个物体的边界也在顶层。
-        - cv2.RETR_TREE 建立一个等级树结构的轮廓。
+        - cv2.RETR_TREE 建立一个等级树结构的轮廓【推荐】
 
     method, 轮廓的近似办法:
         - cv2.CHAIN_APPROX_NONE 存储所有的轮廓点，相邻的两个点的像素位置差不超过1，即max（abs（x1-x2），abs（y2-y1））==1
@@ -356,7 +439,7 @@ def list2cnts(list_pnts):
     isTuple = True
     try:
         x, y = list_pnts[0]
-    except:
+    except TypeError:
         isTuple = False
 
     list_cnts = []  # 维度为3 --> (n,1,2)
@@ -373,12 +456,12 @@ def list2cnts(list_pnts):
     cnts = np.asarray(list_cnts, dtype="float32")  # 必须为np.float32
     return cnts
 
-def approx_bounding(cnt):
+def bounding_box(cnt):
     """ 拟合矩形边框 """
     x, y, w, h = cv2.boundingRect(cnt)
     return (x, y, w, h)
 
-def approx_rect(cnt, extend_result=False):
+def bounding_rect(cnt, extend_result=False):
     """ 最小外接矩形
         result_ext: ["center_pos", "shape", "angle"]
     """
@@ -396,7 +479,7 @@ def get_box_sides(box):
         height, width = width, height
     return (width, height)
 
-def approx_circle(cnt):
+def bounding_circle(cnt):
     """ 最小外接圆 """
     center, radius = cv2.minEnclosingCircle(cnt)  # (x,y) = center
     center = tuple(np.int0(center))  # 转换为整型
@@ -531,8 +614,8 @@ class Blob:
         return math.radians(self.rotation_deg)
 
     def corners(self):
-        raise NotImplemented()
-        return approx_convex(self._cnt)
+        # approx_convex(self._cnt)
+        raise NotImplementedError()
 
     def area(self):
         return cnt_area(self._cnt)
@@ -549,13 +632,7 @@ class Blob:
         return self.elongation_ratio
 
     def bounding(self):
-        return approx_bounding(self._cnt)
-
-    def rect(self, extend_result=False):
-        return approx_rect(self._cnt, extend_result)
-
-    def circle(self):
-        return approx_circle(self._cnt)
+        return bounding_box(self._cnt)
 
 def find_blobs(im, thresholds=None, invert=False):
     """ thresholds: int or list(thresh, maxval) """
@@ -623,11 +700,15 @@ def draw_circle(img, x, y, radius, color=None, thickness=1, fill=False):
         color = (255,0,0) if img.ndim == 3 else 255
     cv2.circle(img, (int(x),int(y)), int(radius), color, thickness, lineType=cv2.LINE_AA)
 
-def draw_ellipse(img, cx, cy, rx, ry, rotation, color=None, thickness=1, fill=False):
+def draw_ellipse(img, center, axes, rotation: float, color=None, thickness=1, fill=False):
+    """ center: tuple of point(x,y)
+        axes:   tuple of (dx, dy) """
     if color is None:
         color = (255,0,0) if img.ndim == 3 else 255
     startAngle, endAngle = 0, 360
-    cv2.ellipse(img, (int(cx),int(cy)), (int(rx),int(ry)), rotation, startAngle, endAngle,
+    cx, cy = [round(i) for i in center]
+    rx, ry = [round(i/2) for i in axes]
+    cv2.ellipse(img, (cx, cy), (rx, ry), rotation, startAngle, endAngle,
         color, thickness, lineType=cv2.LINE_AA)
 
 def draw_string(img, x, y, text, scale=1, color=None, thickness=1, font=cv2.FONT_HERSHEY_SIMPLEX):
@@ -657,13 +738,15 @@ def draw_cross(img, x, y, color=None, size=5, thickness=1):
 
 #####################################################################
 
-COLOR_RANGES_HSV = {
-    "red": [(0, 50, 10), (10, 255, 255)],
-    "orange": [(10, 50, 10), (25, 255, 255)],
-    "yellow": [(25, 50, 10), (35, 255, 255)],
-    "green": [(35, 50, 10), (80, 255, 255)],
-    "cyan": [(80, 50, 10), (100, 255, 255)],
-    "blue": [(100, 50, 10), (130, 255, 255)],
-    "purple": [(130, 50, 10), (170, 255, 255)],
-    "red ": [(170, 50, 10), (180, 255, 255)]
+HSV_COLOR = {  # ["hmin", "hmax", "smin", "smax", "vmin", "vmax"]
+    "black": [0, 180, 0, 255, 0, 46],
+    "gray": [0, 180, 0, 43, 46, 220],
+    "white": [0, 180, 0, 30, 221, 255],
+    "red": [156, 10, 43, 255, 46, 255],
+    "orange": [11, 25, 43, 255, 46, 255],
+    "yellow": [26, 34, 43, 255, 46, 255],
+    "green": [35, 77, 43, 255, 46, 255],
+    "cyan": [78, 99, 43, 255, 46, 255],
+    "blue": [100, 124, 43, 255, 46, 255],
+    "purple": [125, 155, 43, 255, 46, 255],
 }

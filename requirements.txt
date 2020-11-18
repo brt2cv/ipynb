@@ -1,0 +1,5 @@
+jupyter
+numpy
+imageio
+pillow
+opencv-python

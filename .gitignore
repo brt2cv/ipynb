@@ -6,7 +6,6 @@ build/
 tmp/
 dist/
 user/
-projects/
 
 .ipynb_checkpoints/
 __pycache__/

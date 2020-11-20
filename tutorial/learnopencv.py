@@ -87,8 +87,8 @@ uu.imshow(g_)
 # %% 直方图
 # http://codec.wang/#/opencv/basic/15-histograms
 
-path_shapes = "tutorial/img/handwriting.jpg"
-img = cv.imread(path_shapes)
+path_handwriting = "tutorial/img/handwriting.jpg"
+img = cv.imread(path_handwriting)
 
 # %% 比较cv2与numpy的算法效率，推荐: np.bincount()
 # hist = cv2.calcHist([img], [0], None, [256], [0, 256])  # 性能：0.025288 s
@@ -159,3 +159,11 @@ for p, dist in defects:
     print(">>> 距离轮廓：", dist)
     cv.draw_circle(im_dr, *p, 5, (255,0,0), 5)
 uu.imshow(im_dr)
+
+#####################################################################
+# %% Testing
+path_handwriting = "tutorial/img/handwriting.jpg"
+im = cv.imread(path_handwriting)
+uu.imshow(im)
+
+# %%

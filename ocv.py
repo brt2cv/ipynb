@@ -1,22 +1,13 @@
 #!/usr/bin/env python3
-# @Date    : 2020-11-17
+# @Date    : 2020-11-20
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.0.5
+# @Version : 0.0.6
 
 import os
 import math
 import numpy as np
 import cv2
-
-try:
-    from utils.log import getLogger
-    print("[+] {}: 启动调试Logger".format(__file__))
-    logger = getLogger(30)
-except ImportError:
-    from logging import getLogger
-    print("[!] {}: 调用系统logging模块".format(__file__))
-    logger = getLogger(__file__)
 
 DEBUG_MODE = True
 
@@ -25,15 +16,20 @@ DEBUG_MODE = True
 #####################################################################
 
 def distance(pnt1, pnt2):
-    # return np.square(numpy.sum(numpy.square(vec1 - vec2)))
+    # return np.square(np.sum(np.square(vec1 - vec2)))
     return np.linalg.norm(pnt1 - pnt2)
+
+def nonzero_zone(im):
+    # return im[x > 0] = 255
+    # return np.nonzero(mask)
+    return cv2.findNonZero(im)
 
 #####################################################################
 # IO module
 #####################################################################
 
 # from cv2 import imread
-from cv2 import imwrite as imsave
+# from cv2 import imwrite
 
 def imread(uri, as_gray=True):
     if DEBUG_MODE:
@@ -44,8 +40,12 @@ def imread(uri, as_gray=True):
         mode = cv2.IMREAD_COLOR  # cv2.IMREAD_UNCHANGED
     return cv2.imread(uri, mode)
 
-def float2ubyte(im):
-    return (im * 255).astype(np.uint8)
+def imsave(im_arr, path_save):
+    return cv2.imwrite(path_save, im_arr)
+
+def float2uint8(im):
+    # return (im * 255).astype(np.uint8)
+    return cv2.convertScaleAbs(im)
 
 def split(im):
     return cv2.split(im)
@@ -122,26 +122,28 @@ def crop2(im, top_left, bottom_right):
     return crop(im, (x, y, x2-x, y2-y))
 
 # https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#gacea54f142e81b6758cb6f375ce782c8d
-def sobel(im, dx, dy, ksize=3):
+def sobel(im, dx=1, dy=1, ksize=3):
     """
     dx,dy: 求导阶数，0表示不求导。
     ksize: size of the extended Sobel kernel; it must be 1, 3, 5, or 7.
     """
     return cv2.Sobel(im, -1, dx, dy, ksize=ksize)
 
-def scharr(im, dx, dy):
-    """ Kernal = [-3 0 3 -10 0 10 -3 0 3] """
+def scharr(im, dx=1, dy=1):
+    """
+    dx,dy: 求导阶数，0表示不求导。
+    """
     # 虽然Sobel算子可以有效的提取图像边缘，但是对图像中较弱的边缘提取效果较差。
     # 因此为了能够有效的提取出较弱的边缘，需要将像素值间的差距增大，因此引入Scharr算子。
     # Scharr算子是对Sobel算子差异性的增强，因此两者之间的在检测图像边缘的原理和使用方式上相同。
+
+    # Kernal = [-3 0 3 -10 0 10 -3 0 3]
     # Scharr算子的边缘检测滤波的尺寸为3×3，因此也有称其为Scharr滤波器。
     return cv2.Scharr(im, -1, dx, dy)
 
 def laplacian(im, ksize=1):
     """ 二阶导数计算梯度 """
     return cv2.Laplacian(im, -1, ksize=ksize)
-
-gradient = scharr
 
 #####################################################################
 # Pixel
@@ -187,7 +189,7 @@ def _split_thresholds(thresholds):
 
 def binary(im, thresholds, invert=False):
     """
-    thresholds: int or list(thresh, maxval)
+    thresholds: int or list(thresh, maxval), or 'otsu'/'triangle'
     type_:
         cv2.THRESH_BINARY
         cv2.THRESH_BINARY_INV
@@ -196,15 +198,19 @@ def binary(im, thresholds, invert=False):
         cv2.THRESH_TOZERO_INV
     """
     type_ = cv2.THRESH_BINARY  # 0
+    if isinstance(thresholds, str):
+        thresh, maxval = 0, 255
+        if thresholds == "otsu":
+            type_ += cv2.THRESH_OTSU  # 8
+        elif thresholds == "triangle":
+            type_ += cv2.THRESH_TRIANGLE
+        else:
+            raise KeyError(f"未知的关键词【{thresholds}】")
+    else:
+        thresh, maxval = _split_thresholds(thresholds)
+
     if invert:
         type_ += 1
-    if thresholds == "otsu":
-        type_ += cv2.THRESH_OTSU  # 8
-        thresholds = [0,255]
-    else:
-        thresholds = _split_thresholds(thresholds)
-
-    thresh, maxval = thresholds
     _, im2 = cv2.threshold(im, thresh, maxval, type_)
     return im2
 
@@ -212,6 +218,9 @@ threshold = binary
 
 def threshold_otsu(im, invert=False):
     return binary(im, "otsu", invert)
+
+def threshold_triangle(im, invert=False):
+    return binary(im, "triangle", invert)
 
 def graystairs(im, low_val, high_val):
     im2 = np.subtract(im, low_val, casting="unsafe")
@@ -268,10 +277,27 @@ def mean(im, kernal: tuple):
     return cv2.blur(im, kernal)
 
 def bilateral(im, d, sigma_color, sigma_space):
-    """ 双边滤波 """
+    """ 双边滤波
+    d: -1，则从sigmaSpace中计算得到。常见的d取值为15或者20，如果过大会导致运算时间较长。
+    sigmaColor: 表示高斯核中颜色值标准方差，如: 120
+    sigmaSpace: 表示高斯核中空间的标准方差，如: 10
+    """
     # 模糊操作基本都会损失掉图像细节信息，尤其前面介绍的线性滤波器，图像的边缘信息很难保留下来。
     # 然而，边缘（edge）信息是图像中很重要的一个特征，所以这才有了双边滤波。
     return cv2.bilateralFilter(im, d, sigma_color, sigma_space)
+
+def sharpening(im, sigma=5):
+    """ Laplacian Sharpening（拉普拉斯锐化） """
+    # kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
+    kernel = np.array([[0, -1, 0], [-1, sigma, -1], [0, -1, 0]])
+    im_laplacian = cv2.filter2D(im, -1, kernel)
+    # return cv2.addWeighted(im, 1, im_laplacian, 0.5, 0)
+    return im_laplacian
+
+def shapening_USM(im, sigma=5):
+    blur = cv2.GaussianBlur(im, (0, 0), sigma)
+    usm = cv2.addWeighted(im, 1.5, blur, -0.5, 0)
+    return usm
 
 #####################################################################
 # Morpholopy 形态学操作
@@ -288,29 +314,33 @@ def kernal(size, shape="rect"):
     """ return a np.ndarray as kernal """
     if isinstance(size, np.ndarray):
         return size
+    # elif isinstance(size, int):
+    #     size = (size, size)
+    # elif DEBUG_MODE and not isinstance(size, tuple):
+    #     size = tuple(size)
     nShape = KERNEL_SHAPE_OPENCV[shape]
     return cv2.getStructuringElement(nShape, size)
 
 # def erosion(im, k):
-from cv2 import erode
+erode = lambda im, k: cv2.erode(im, kernal(k))
 
 # def dilation(im, k):
-from cv2 import dilate
+dilate = lambda im, k: cv2.dilate(im, kernal(k))
 
 # 先腐蚀再膨胀，消除小物体或小斑块
-opening = lambda im, k: cv2.morphologyEx(im, cv2.MORPH_OPEN, k)
+opening = lambda im, k: cv2.morphologyEx(im, cv2.MORPH_OPEN, kernal(k))
 
 # 先膨胀再腐蚀，填充孔洞
-closing = lambda im, k: cv2.morphologyEx(im, cv2.MORPH_CLOSE, k)
+closing = lambda im, k: cv2.morphologyEx(im, cv2.MORPH_CLOSE, kernal(k))
 
 # 梯度：图像的膨胀和腐蚀之间的差异，结果看起来像目标的轮廓
-gradient = lambda im, k: cv2.morphologyEx(im, cv2.MORPH_GRADIENT, k)
+gradient = lambda im, k: cv2.morphologyEx(im, cv2.MORPH_GRADIENT, kernal(k))
 
 # 顶帽：原图像减去它的开运算值，突出原图像中比周围亮的区域
-tophat = lambda im, k: cv2.morphologyEx(im, cv2.MORPH_TOPHAT, k)
+tophat = lambda im, k: cv2.morphologyEx(im, cv2.MORPH_TOPHAT, kernal(k))
 
 # 黑帽：原图像减去它的闭运算值，突出原图像中比周围暗的区域
-blackhat = lambda im, k: cv2.morphologyEx(im, cv2.MORPH_BLACKHAT, k)
+blackhat = lambda im, k: cv2.morphologyEx(im, cv2.MORPH_BLACKHAT, kernal(k))
 
 #####################################################################
 # Feature 特征处理
@@ -322,6 +352,18 @@ def canny(im, thresholds):
     return cv2.Canny(im, *thresholds)
 
 edges = canny
+
+def find_corners(im, quality, max_num=0, min_dis=0):
+    """
+    max_num: 最大返回关键点数目
+    min_dis: 两个关键点之间的最短距离
+    quality: float from [0,1], 越大则对检测角点的质量要求越严格
+    """
+    corners = cv2.goodFeaturesToTrack(im, max_num, qualityLevel=quality, minDistance=min_dis)
+    if corners is not None:
+        if DEBUG_MODE:
+            print(f">>> 共计检测到【{len(corners)}】个Corner对象")
+        return corners[:, 0]
 
 from collections import namedtuple
 # Point = namedtuple("Point", ["x", "y"])
@@ -497,7 +539,7 @@ def approx_polygon(cnt, epsilon=0):  # 多边形拟合
     参数:
         - InputArray curve:        一般是由图像的轮廓点组成的点集
         - OutputArray approxCurve: 表示输出的多边形点集
-        - double epsilon:          主要表示输出的精度，就是另个轮廓点之间最大距离数
+        - double epsilon:          表示逼近曲率，越小表示逼近精度越高
         - bool closed:             表示输出的多边形是否封闭
     """
     if epsilon <= 0:
@@ -605,17 +647,15 @@ class Blob:
 
     def rotation(self):
         """ deprecated: 并不保证准确 """
-        logger.warning("Blob.rotation() 并不保证准确，请谨慎使用")
         return self.rotation_deg
 
     def rotation_rad(self):
         """ deprecated: 并不保证准确 """
-        logger.warning("Blob.rotation() 并不保证准确，请谨慎使用")
         return math.radians(self.rotation_deg)
 
     def corners(self):
-        # approx_convex(self._cnt)
-        raise NotImplementedError()
+        list_pnts = approx_polygon(self._cnt)
+        return list_pnts
 
     def area(self):
         return cnt_area(self._cnt)
@@ -624,11 +664,13 @@ class Blob:
         return cnt_perimeter(self._cnt)
 
     def roundness(self):
+        """ 圆形接近1 """
         return cnt_roundness(self._cnt)
 
     def elongation(self):
-        """ deprecated: 并不保证准确 """
-        logger.warning("Blob.rotation() 并不保证准确，请谨慎使用")
+        """ deprecated: 并不保证准确
+            圆形接近1，直线接近0
+        """
         return self.elongation_ratio
 
     def bounding(self):
@@ -734,7 +776,6 @@ def draw_cross(img, x, y, color=None, size=5, thickness=1):
     v_0, v_1 = (x,y-size), (x,y+size)
     cv2.line(img, h_0, h_1, color, thickness, lineType=cv2.LINE_8)
     cv2.line(img, v_0, v_1, color, thickness, lineType=cv2.LINE_8)
-
 
 #####################################################################
 

@@ -619,7 +619,17 @@ def inside_cnt(point, cnt):
 
 #####################################################################
 
-class Blob:
+class Shape:
+    @property
+    def cx(self):
+        return self._cx
+    @property
+    def cy(self):
+        return self._cy
+    def center(self):
+        return [self.cx, self.cy]
+
+class Blob(Shape):
     def __init__(self, cnt):
         self._cnt = cnt
         # return: [[中心坐标]、[宽度, 高度]、[旋转角度]]，其中，角度是度数形式，不是弧度数
@@ -629,17 +639,6 @@ class Blob:
         if w < h:
             w, h = h, w
         self.elongation_ratio = h / w  # range: [0,1]
-
-    def center(self):
-        return [self.cx, self.cy]
-
-    @property
-    def cx(self):
-        return self._cx
-
-    @property
-    def cy(self):
-        return self._cy
 
     @property
     def cnt(self):
@@ -757,6 +756,8 @@ def draw_string(img, x, y, text, scale=1, color=None, thickness=1, font=cv2.FONT
     if color is None:
         color = (255,0,0) if img.ndim == 3 else 255
     cv2.putText(img, text, (int(x),int(y)), font, scale, color, thickness)
+
+draw_text = draw_string
 
 def draw_contours(img, list_cnts, color=None, thickness=1, fill=False):
     if color is None:

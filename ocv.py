@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
-# @Date    : 2020-11-20
+# @Date    : 2020-11-26
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.0.6
+# @Version : 0.0.7
 
 import os
+import platform
 import math
 import numpy as np
 import cv2
+
+try:
+    import imageio
+    ENABLE_MODULE_IMAGEIO = True
+except ImportError:
+    ENABLE_MODULE_IMAGEIO = False
 
 DEBUG_MODE = True
 
@@ -31,9 +38,25 @@ def nonzero_zone(im):
 # from cv2 import imread
 # from cv2 import imwrite
 
+def isAscii(s):
+    return all(ord(c) < 128 for c in s)
+
+def imread_byImageio(uri, **kwargs):
+    if kwargs.get("as_gray"):
+        pilmode = kwargs.get("pilmode", "L")
+        assert pilmode != "L", f"pilmode设置【{pilmode}】与 as_gray->【L】不匹配，请验证参数"
+        kwargs["pilmode"] = "L"
+        kwargs["as_gray"] = False
+    return imageio.imread(uri, **kwargs)
+
 def imread(uri, as_gray=True):
     if DEBUG_MODE:
         assert os.path.exists(uri)
+
+    if platform.system() == "Windows":
+        if ENABLE_MODULE_IMAGEIO:
+            return imread_byImageio(uri)
+        # assert isAscii(uri), "Windows::OpenCV不支持中文路径"
 
     mode = cv2.IMREAD_GRAYSCALE
     if not as_gray:

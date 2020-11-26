@@ -1,0 +1,791 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"rpa",
+				"rpath2curr"
+			],
+			[
+				"conf",
+				"conf_mgr"
+			],
+			[
+				"get",
+				"get_caller_path\tfunction"
+			],
+			[
+				"machine",
+				"machine_node"
+			],
+			[
+				"Licen",
+				"LicenseID\tstatement"
+			],
+			[
+				"licen",
+				"LicenseVersion\tstatement"
+			],
+			[
+				"li",
+				"LicenseID\tstatement"
+			],
+			[
+				"vers",
+				"VERSION"
+			],
+			[
+				"run",
+				"run_pyqt5\tfunction"
+			],
+			[
+				"str",
+				"stratergy\tstatement"
+			],
+			[
+				"load",
+				"load_strategy\tfunction"
+			],
+			[
+				"upd",
+				"update_plot\tfunction"
+			],
+			[
+				"path_",
+				"path_save"
+			],
+			[
+				"du",
+				"dump\tfunction"
+			],
+			[
+				"dwl",
+				"download_m3u8_rtmma\tfunction"
+			],
+			[
+				"down",
+				"download_music\tfunction"
+			],
+			[
+				"s",
+				"s_unit\tstatement"
+			],
+			[
+				"e",
+				"e_unit\tstatement"
+			],
+			[
+				"list",
+				"list_start\tstatement"
+			],
+			[
+				"next",
+				"next_url\tstatement"
+			],
+			[
+				"save",
+				"save_to"
+			],
+			[
+				"id",
+				"idx_b\tstatement"
+			],
+			[
+				"PATH",
+				"PATH_UUID\tstatement"
+			],
+			[
+				"DI",
+				"dict_conf\tstatement"
+			],
+			[
+				"por",
+				"PORT"
+			],
+			[
+				"dict",
+				"dict_conf\tstatement"
+			],
+			[
+				"ip",
+				"IPADDR"
+			],
+			[
+				"make",
+				"make_unit"
+			],
+			[
+				"QToo",
+				"QToolBox"
+			],
+			[
+				"QTool",
+				"QToolBox\tclass"
+			],
+			[
+				"icon",
+				"icon_size\tstatement"
+			],
+			[
+				"parent",
+				"parent_listbox\tparam"
+			],
+			[
+				"max",
+				"maxval\tstatement"
+			],
+			[
+				"reje",
+				"rejected\tfunction"
+			],
+			[
+				"acc",
+				"accept"
+			],
+			[
+				"acce",
+				"accepted\tfunction"
+			],
+			[
+				"pro",
+				"property\tstatement"
+			],
+			[
+				"su",
+				"supprot_ok\tfunction"
+			],
+			[
+				"cho",
+				"choices_id\tparam"
+			],
+			[
+				"_set",
+				"_setup_menu\tfunction"
+			],
+			[
+				"set",
+				"set_backend\tfunction"
+			],
+			[
+				"Oepn",
+				"OpenImageFolder\tclass"
+			],
+			[
+				"curr",
+				"curr_idx\tstatement"
+			],
+			[
+				"open",
+				"open_first"
+			],
+			[
+				"curr_",
+				"curr_file"
+			],
+			[
+				"dir_dst",
+				"dir_dst_abs\tstatement"
+			],
+			[
+				"im",
+				"import_submodules\tfunction"
+			],
+			[
+				"pain",
+				"paint_polygon\tfunction"
+			],
+			[
+				"po",
+				"polygon\tstatement"
+			],
+			[
+				"dr",
+				"drawPolygon"
+			],
+			[
+				"pos",
+				"pos0\tstatement"
+			],
+			[
+				"pin",
+				"painter\tparam"
+			],
+			[
+				"dra",
+				"drawLine"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "/D/Home/workspace/ipynb/spider/rtmma.py",
+			"settings":
+			{
+				"buffer_size": 6445,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/D/Home/local/utils/pydev/utils/wreq.py",
+			"settings":
+			{
+				"buffer_size": 5022,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "Builder for MVTool",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Builder for MVTool",
+					""
+				],
+				[
+					"Builder for MVTool",
+					"Triage"
+				],
+				[
+					"Builder for MVTool",
+					"OCR-Kit"
+				],
+				[
+					"Builder for MVTool",
+					"MVTool"
+				]
+			],
+			[
+				"Builder for MVTool",
+				"MVTool"
+			]
+		],
+		[
+			[
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"MS-CMD Run"
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"OCR-Kit"
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"MVTool-Plugin"
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"MVTool"
+				]
+			],
+			[
+				"Packages/Python/Python.sublime-build",
+				"MVTool"
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"pack",
+				"Package Control: Enable Package"
+			],
+			[
+				"pa",
+				"Package Control: Disable Package"
+			],
+			[
+				"p dis",
+				"Package Control: Disable Package"
+			],
+			[
+				"pacen",
+				"Package Control: Enable Package"
+			],
+			[
+				"pack dis",
+				"Package Control: Disable Package"
+			],
+			[
+				"pack en",
+				"Package Control: Enable Package"
+			],
+			[
+				"remove",
+				"Package Control: Remove Package"
+			],
+			[
+				"hermes",
+				"Hermes: List Kernels"
+			],
+			[
+				"view",
+				"View: Toggle Menu"
+			],
+			[
+				"install",
+				"SublimeLinter: Show All Errors"
+			],
+			[
+				"paac",
+				"Install Package Control"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 316.0,
+		"history":
+		[
+			"23*24"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/D/Home/workspace/ipynb",
+		"/D/Home/workspace/ipynb/spider"
+	],
+	"file_history":
+	[
+		"/D/Home/workspace/tmv/src/utils/__init__.py",
+		"/D/Home/workspace/rcp/regm/protocal.py",
+		"/D/Home/workspace/tmv/src/utils/base.py",
+		"/D/Home/workspace/tmv/src/build.py",
+		"/D/Home/workspace/tmv/src/core/__init__.py",
+		"/D/Home/personal/diary/2020-spring.md",
+		"/D/Home/workspace/tmv/src/app/mvtool/config/menu.json",
+		"/D/Home/workspace/tmv/src/app/triage/build.spec",
+		"/D/Home/workspace/tmv/src/utils/debug.py",
+		"/D/Home/workspace/tmv/src/app/triage/main.py",
+		"/D/Home/workspace/tmv/src/app/triage/view/mainwnd.py",
+		"/D/Home/workspace/tmv/src/app/triage/run.py",
+		"/D/Home/workspace/tmv/src/core/config.py",
+		"/D/Home/workspace/rcp/regd.py",
+		"/D/Home/workspace/tmv/src/core/register/regm/protocal.py",
+		"/D/Home/workspace/tmv/src/core/register/__init__.py",
+		"/D/Home/workspace/tmv/src/app/triage/build.py",
+		"/D/Home/workspace/tmv/src/core/register/readme.md",
+		"/D/Home/workspace/tmv/src/app/triage/config/settings.ini",
+		"/D/Home/workspace/rcp/reg.py",
+		"/D/Home/workspace/rcp/regm/strategy.json",
+		"/D/Home/workspace/rcp/regm/demo_strategy_conf/strategy.json",
+		"/D/Home/workspace/tmv/src/mvlib/transform.py",
+		"/D/Home/workspace/tmv/doc/framework.md",
+		"/D/Home/workspace/tmv/src/plugins/color.py",
+		"/D/Home/workspace/tmv/src/plugins/image.py",
+		"/D/Home/workspace/tmv/src/core/register/dongle.py",
+		"/D/Home/workspace/tmv/src/plugins/file.py",
+		"/D/Home/workspace/tmv/src/core/plugin/filter.py",
+		"/D/Home/personal/diary/2020-02.md",
+		"/D/Home/workspace/tmv/src/utils/qt5wx/wx_plot.py",
+		"/D/Home/workspace/tmv/src/core/plugin/widgets.py",
+		"/D/Home/workspace/tmv/src/core/img.py",
+		"/D/Home/workspace/tmv/src/app/triage/dist/Triage_v0.5/app/triage/plugins/triage.py",
+		"/D/Home/workspace/tmv/src/plugins/debug.py",
+		"/D/Home/workspace/tmv/src/app/triage/plugins/triage.py",
+		"/D/Home/workspace/tmv/src/app/triage/dist/Triage_v0.6/plugins/debug.py",
+		"/D/Home/workspace/tmv/src/app/triage/dist/Triage_v0.6/app/triage/plugins/triage.py",
+		"/D/Home/workspace/tmv/src/app/triage/dist/Triage_v0.5/plugins/debug.py",
+		"/D/Home/workspace/ipynb/spider/dfrbbs_pic.py",
+		"/D/Home/workspace/ipynb/spider/rtmma.py",
+		"/D/Home/personal/diary/2020-01.md",
+		"/D/Home/workspace/ipynb/spider/music_all.py",
+		"/D/Home/workspace/ipynb/spider/rtmma_mp4.py",
+		"/D/Home/workspace/ipynb/spider/music_163.py",
+		"/D/Home/workspace/ipynb/spider/rtmma_m3u8.py",
+		"/D/Download/77_20200104123738942.m3u8",
+		"/D/Home/workspace/ipynb/spider/wreq.py",
+		"/D/Download/[00092]精品推荐-『秀人网』漂亮美乳模特凯竹大尺度私拍 美乳翘挺 性感纹身 摄影师太幸福 高清1080P原版无水印 - 人体美媚馆.xml",
+		"/D/Home/personal/diary/2019-2020_年终总结.md",
+		"/D/Home/workspace/ipynb/spider/163_music.py",
+		"/D/Home/workspace/tmv/src/utils/imgio.py",
+		"/D/Home/workspace/tmv/src/app/serial/main.py",
+		"/D/Home/workspace/tmv/src/app/serial/run.py",
+		"/D/Home/workspace/tmv/src/app/serial/view/mainwnd.py",
+		"/D/Home/workspace/tmv/src/mvlib/__init__.py",
+		"/D/Home/workspace/tmv/src/mvlib/backend.py",
+		"/D/Home/workspace/tmv/src/app/serial/wx/input_dialog.py",
+		"/D/Home/workspace/tmv/src/utils/qt5.py",
+		"/D/Home/workspace/tmv/src/app/serial/settingcode/generate_cmd.py",
+		"/D/Home/workspace/tmv/src/app/serial/settingcode/xml_parser.py",
+		"/D/Home/workspace/tmv/src/app/serial/wx/search_edit.py",
+		"/D/Home/workspace/tmv/src/app/serial/mainwnd.py",
+		"/D/Home/workspace/tmv/src/app/triage/dist/Triage/plugins/debug.py",
+		"/D/Home/workspace/tmv/src/app/triage/dist/Triage_v0.5/mvlib/test/base.py",
+		"/D/Home/workspace/blueprint/calc_drag_listbox.py",
+		"/D/Home/workspace/tmv/src/core/menu.py",
+		"/D/Home/workspace/tmv/src/app/mvtool/main.py",
+		"/D/Home/workspace/tmv/src/core/listbox.py",
+		"/D/Home/workspace/tmv/src/core/register/regm/encrypt.py",
+		"/D/Home/workspace/tmv/src/app/demo/main.py",
+		"/D/Home/workspace/tmv/src/mvlib/color.py",
+		"/D/Home/workspace/tmv/src/mvlib/filters.py",
+		"/D/Home/workspace/tmv/src/plugins/view.py",
+		"/D/Home/workspace/tmv/src/mvlib/exposure.py",
+		"/D/Home/workspace/tmv/src/app/triage/dist/Triage/plugins/color.py",
+		"/D/Home/workspace/src/imagepy/imagepy/menus/Image/Adjust/__init__.py",
+		"/D/Home/workspace/src/imagepy/imagepy/core/engine/__init__.py",
+		"/D/Home/workspace/src/imagepy/imagepy/data/language/Chinese.dic",
+		"/D/Home/workspace/tmv/src/core/plugin/format.py",
+		"/D/usr/Python/lib/types.py",
+		"/D/Home/workspace/src/imagepy/imagepy/menus/Process/Filters/classic_plgs.py",
+		"/D/Home/workspace/tmv/src/plugins/morphology.py",
+		"/D/Home/workspace/tmv/src/utils/qt5wx/wx_unit.py",
+		"/D/Home/workspace/tmv/src/mvlib/morphology.py",
+		"/D/Home/workspace/tmv/src/app/mvtool/view/mainwnd.py",
+		"/D/Home/workspace/tmv/src/run.py",
+		"/D/Home/workspace/tmv/src/.vscode/tmv.sublime-project",
+		"/D/Home/workspace/tmv/src/plugins/__init__.py",
+		"/D/Home/workspace/tmv/run",
+		"/D/programs/sublime64/Data/Packages/Python/Python.sublime-build",
+		"/D/Home/workspace/tmv/src/app/mvtool/config/settings.ini",
+		"/D/Home/workspace/tmv/src/utils/expy.py",
+		"/D/Home/workspace/tmv/src/app/triage/config/menu.json",
+		"/D/Home/workspace/tmv/src/utils/gmgr.py",
+		"/D/Home/workspace/tmv/src/app/demo/run.py",
+		"/D/Home/workspace/tmv/src/app/triage/plugins/database.py",
+		"/D/Home/workspace/tmv/src/app/triage/dist/Triage_v0.2/app/triage/plugins/database.py",
+		"/D/Home/workspace/tmv/src/app/demo/build.spec",
+		"/D/Home/workspace/tmv/src/build_demo.py",
+		"/D/Home/enpy/scipy/Lib/site-packages/PIL/Image.py",
+		"/D/Home/enpy/scipy/lib/site-packages/PIL/__init__.py",
+		"/D/Home/workspace/tmv/src/plugins/demo.py",
+		"/D/Home/workspace/tmv/src/app/mvtool/run.py",
+		"/D/Home/workspace/tmv/src/build_triage.py",
+		"/D/Home/workspace/tmv/src/app/triage/dist/Triage/app/triage/plugins/triage.py",
+		"/D/Home/workspace/tmv/src/core/register/config/settings.ini",
+		"/D/Home/workspace/tmv/src/app/demo/view/mainwnd.py",
+		"/D/Home/workspace/tmv/src/build.spec",
+		"/D/Home/workspace/tmv/src/app/demo/build.py",
+		"/D/Home/workspace/tmv/src/triage.py",
+		"/D/Home/local/utils/pydev/mvlib/backend.py",
+		"/D/Home/local/utils/pydev/mvlib/__init__.py",
+		"/D/Home/workspace/tmv/env/pyvenv.cfg",
+		"/D/Home/workspace/tmv/env/Scripts/activate",
+		"/D/Home/workspace/tmv/runtime/win64/pyvenv.cfg",
+		"/D/Home/workspace/tmv/runtime/win64/Scripts/activate",
+		"/D/Home/workspace/src/imagepy/imagepy/menus/Process/Threshold/threshold_plgs.py",
+		"/D/Home/workspace/tmv/plugins/color.py",
+		"/D/Home/workspace/tmv/plugins/morphology.py",
+		"/D/Home/workspace/src/imagepy/imagepy/menus/Analysis/statistic_plg.py",
+		"/D/Home/workspace/src/imagepy/imagepy/IPy.py",
+		"/D/Home/workspace/src/imagepy/imagepy/core/myvi/canvas3d.py",
+		"/D/Home/workspace/src/imagepy/imagepy/core/engine/macros.py",
+		"/D/Home/workspace/src/imagepy/.gitignore",
+		"/D/Home/workspace/note/english/first.md"
+	],
+	"find":
+	{
+		"height": 40.0
+	},
+	"find_in_files":
+	{
+		"height": 108.0,
+		"where_history":
+		[
+			"D:\\Home\\workspace\\tmv\\src\\",
+			"D:\\Home\\workspace\\tmv\\src\\app\\serial",
+			"D:\\Home\\workspace\\tmv\\src\\app\\",
+			"D:\\Home\\workspace\\tmv\\src",
+			"D:\\Home\\workspace\\src\\imagepy\\imagepy",
+			"D:\\Home\\workspace\\src\\imagepy\\imagepy\\menus",
+			"D:\\Home\\workspace\\tmv\\src\\",
+			"D:\\Home\\workspace\\tmv\\src\\utils",
+			"*.py",
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"relpath",
+			"conf_mgr.get(",
+			"conf_mgr.get()",
+			"STRATEGY",
+			"DialogFilter",
+			"self.widgets",
+			"url_m3u8",
+			"assert",
+			"os.path",
+			"encoding",
+			"set_backend",
+			"utils.uic",
+			"util.",
+			"set_backend",
+			"checker",
+			"PATH_UUID",
+			"PORT",
+			"logger",
+			"MenubarCreator",
+			"QToolBar",
+			"histogram",
+			"img",
+			"im",
+			"accepted",
+			"accept",
+			"Histogram",
+			"globals",
+			"Int",
+			"spinbox",
+			"win32",
+			"isReload",
+			"Laplace",
+			"GaussianLaplaceBlur",
+			"chdir_topdir",
+			"inspect",
+			"OPTION",
+			"matplotlib",
+			"shape",
+			"runtime",
+			"loglevel",
+			"runtime/win64",
+			"UnitPlot",
+			"wx_plot",
+			"wxplot",
+			"FigureCanvas",
+			"from matplotlib",
+			"matplotlib",
+			"triage.db",
+			"base",
+			"expy",
+			"ui",
+			"win64",
+			"sys",
+			"os.path",
+			"curr_dir"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"url_mp4",
+			"utils.qt5",
+			"utils.",
+			"im2",
+			"slider"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "/D/Home/workspace/ipynb/spider/rtmma.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6445,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								6445,
+								6445
+							]
+						],
+						"settings":
+						{
+							"SL.44.region_keys":
+							[
+								"SL.pylint.Gutter.|region.redish markup.error.sublime_linter|dot",
+								"SL.pylint.Highlights.|9658bf979b5d338d215820c02942d6a21baea10fd1e6ace46db73256145e913c|region.yellowish markup.warning.sublime_linter|32",
+								"sublime_linter.protected_regions",
+								"SL.pylint.Gutter.|region.yellowish markup.warning.sublime_linter|dot",
+								"SL.pylint.Highlights.|cb65cf0bbac2e7a204e1fccf6d19ea7551732518d5282049922af237a7a61862|region.redish markup.error.sublime_linter|32",
+								"SL.pylint.Highlights.|502832853d0c46975c386c05f75febff725b3d4955cdc84a8cb9fb0d81717698|region.redish markup.error.sublime_linter|32",
+								"SL.pylint.Highlights.|8f7e17ba7ef2f8839dea25c8a2bbc6c4b1489ddcb31383515b4b27e9961a2308|region.yellowish markup.warning.sublime_linter|32"
+							],
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2284.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/D/Home/local/utils/pydev/utils/wreq.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5022,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"SL.24.region_keys":
+							[
+								"SL.pylint.Highlights.|8491d2d0eac5c65d8f85abc658f9eb8089cebefd0f7b16d276e5f4b5879334c2|region.redish markup.error.sublime_linter|32",
+								"sublime_linter.protected_regions",
+								"SL.pylint.Gutter.|region.redish markup.error.sublime_linter|dot"
+							],
+							"SL.46.region_keys":
+							[
+								"sublime_linter.protected_regions",
+								"SL.pylint.Highlights.|7f57dfe2083069320e1dc0ddc8b9c64eaf0487b9f8f9f3c57fd9f31c776f20f9|region.yellowish markup.warning.sublime_linter|32",
+								"SL.pylint.Gutter.|region.yellowish markup.warning.sublime_linter|dot"
+							],
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 315.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 27.0
+	},
+	"input":
+	{
+		"height": 42.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": false,
+	"output.SublimeLinter":
+	{
+		"height": 0.0
+	},
+	"output.SublimeLinter Messages":
+	{
+		"height": 127.0
+	},
+	"output.exec":
+	{
+		"height": 147.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "Builder for MVTool",
+	"project": "ipynb.sublime-project",
+	"replace":
+	{
+		"height": 50.0
+	},
+	"save_all_on_build": false,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"D:\\Home\\workspace\\.vscode\\markdown.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 188.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

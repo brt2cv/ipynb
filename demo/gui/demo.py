@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-# @Date    : 2020-11-20
+# @Date    : 2020-11-27
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.2
+# @Version : 0.2.3
 
-from qt import *
+from pyqt import *
 from camera import Qt5Camera
-import imgio
-import ocv as cv
+import opencv as cv
 import script
 
 class MainWnd(QWidget):
@@ -17,6 +16,7 @@ class MainWnd(QWidget):
 
         self.camera = Qt5Camera(0, [800, 600], isRGB=0)
         self._setup_ui()
+        self.camera.dataUpdated.connect(self.update_frame)
         self.camera.start()
 
     def _setup_ui(self):
@@ -35,7 +35,6 @@ class MainWnd(QWidget):
         self.canvas.setScaledContents(True)
         pixmap_label(self.canvas, QPixmap(*rup_win))
         self.rup.addWidget(self.canvas)
-        self.camera.dataUpdated.connect(self.update_frame)
 
         self.processing = QLabel("Image Processing", self)
         # self.processing.setFixedSize(800,600)
@@ -48,12 +47,12 @@ class MainWnd(QWidget):
         self.camera.stop()
 
     def update_frame(self, im_arr):
-        pixmap_cap = imgio.ndarray2pixmap(im_arr)
+        pixmap_cap = cv.ndarray2pixmap(im_arr)
         self.canvas.setPixmap(pixmap_cap)
 
-        # im_proc = script.improc(im_arr)
-        # pixmap_proc = imgio.ndarray2pixmap(im_proc)
-        # self.processing.setPixmap(pixmap_proc)
+        im_proc = script.improc(im_arr)
+        pixmap_proc = cv.ndarray2pixmap(im_proc)
+        self.processing.setPixmap(pixmap_proc)
 
 if __name__ == "__main__":
     run_qtapp(MainWnd)

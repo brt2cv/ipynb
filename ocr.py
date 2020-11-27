@@ -1,25 +1,28 @@
 #!/usr/bin/env python3
-# @Date    : 2020-11-13
+# @Date    : 2020-11-27
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.1
+# @Version : 0.2.2
 
 try:
     from utils.log import getLogger
     print("[+] {}: 启动调试Logger".format(__file__))
-    logger = getLogger(0)
+    logger = getLogger(1)
 except ImportError:
     from logging import getLogger
     print("[!] {}: 调用系统logging模块".format(__file__))
     logger = getLogger(__file__)
 
 TessEnv = {
-    # "TesseractBinPath": "D://programs//Tesseract",
+    # "TesseractBinPath": "D:/programs/Tesseract",
     "TessDataDir": "/home/brt/ws/tmv/src/plugins/tesseract/tessdata/demo",
+    # "TessDataDir": "D:/Home/workspace/tmv/src/plugins/tesseract/tessdata/demo",
     "Lang": "eng"
 }
 
 #####################################################################
+import os
+from PIL import Image
 
 try:
     import tesserocr
@@ -99,18 +102,15 @@ class BaiduOcrApi(OcrEngine):
         """ 每日限制300次调用 """
         return self._parse(pil_img, self.client.basicAccurate)
 
-
 class Tesseract(OcrEngine):
     """ 对PIL友好的Tesseract封装 """
-    def __init__(self, *args, **kwargs):
-        """ path=dir_tessdata
-            lang="eng"
-        """
+    def __init__(self, dir_tessdata, lang):
         assert HasImportTesserocr
         self.isRunning = True
 
         # 对于portable版本的Tesseract，需要在PyTessBaseAPI对象初始化时，指定path
-        self.api = PyTessBaseAPI(*args, **kwargs)
+        assert os.path.exists(dir_tessdata)
+        self.api = PyTessBaseAPI(path=dir_tessdata, lang=lang)
         self.config = {}
 
     def __del__(self):
@@ -127,6 +127,7 @@ class Tesseract(OcrEngine):
 
     def recognize(self):
         text = self.api.GetUTF8Text()
+        print("..", text)
         text = text.strip("\n")
         # text = text.strip()
         if not text.strip():
@@ -194,63 +195,65 @@ class Tesseract(OcrEngine):
 
 #####################################################################
 
-from PyQt5.QtWidgets import QMainWindow, QLabel
-
-class MainWnd_OCR(QMainWindow):
-
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("HeroJe - OCR字符识别")
-        self.setGeometry(100, 100, 800, 630)
-        self.statusBar().showMessage('请移动画面，将字符置于识别框中')
-
-        self.ocr_engine = Tesseract(path=TessEnv["TessDataDir"],
-                                    lang=TessEnv["Lang"])
-        self.camera = Qt5Camera(0)
-        # vbox = QVBoxLayout()
-        # self.setLayout(vbox)
-        self.canvas = QLabel("img_frame", self)
-        self.canvas.setFixedSize(800,600)
-        self.canvas.setScaledContents(True)
-
-        self.camera.dataUpdated.connect(self._update_frame)
-        self.camera.start()
-
-    def closeEvent(self, event):
-        super().closeEvent(event)
-        self.camera.stop()
-
-    def set_roi(self, roi):
-        pass
-
-    def set_roi2(self, point_1, point_2):
-        pass
-
-    # def set_imgfmt(self, format):
-    #     self.image_format = format
-
-    def _update_frame(self, pil_img):
-        draw = ImageDraw.Draw(pil_img)
-        draw.rectangle(self.ROI, width=2)
-
-        pixmap = imgio.pillow2pixmap(pil_img)
-        self.canvas.setPixmap(pixmap)
-        self._recognize(pil_img)
-
-    def _recognize(self, pil_img):
-        result = self.ocr_engine.img2text(pil_img.crop(self.ROI))
-        # logger.debug(">>> OCR: {}".format(result))
-        msg = 'OCR识别结果: {}'.format(result.strip())
-        self.statusBar().showMessage(msg)
-        return result
-
-
 if __name__ == "__main__":
+    from PyQt5.QtWidgets import QMainWindow, QLabel
+
+    from camera import Qt5Camera
+    import opencv as cv
+
+    class MainWnd_OCR(QMainWindow):
+        def __init__(self, resolution):
+            super().__init__()
+            self.setWindowTitle("HeroJe - OCR字符识别")
+            self.setGeometry(100, 100, 800, 630)
+            self.statusBar().showMessage('请移动画面，将字符置于识别框中')
+
+            self.camera = Qt5Camera(0, resolution, isRGB=False)
+            self.camera.dataUpdated.connect(self._update_frame)
+            # vbox = QVBoxLayout()
+            # self.setLayout(vbox)
+            self.canvas = QLabel("img_frame", self)
+            self.canvas.setFixedSize(800,600)
+            self.canvas.setScaledContents(True)
+
+            self.ocr_engine = Tesseract(TessEnv["TessDataDir"],
+                                        TessEnv["Lang"])
+
+            self.camera.start()
+
+        def closeEvent(self, event):
+            super().closeEvent(event)
+            self.camera.stop()
+
+        def set_roi(self, roi):
+            self.ROI = roi
+
+        def set_roi2(self, point_1, point_2):
+            x, y = point_1
+            x2, y2 = point_2
+            self.ROI = [x, y, x2-x, y2-y]
+
+        def _update_frame(self, im_arr):
+            im_roi = cv.crop(im_arr, self.ROI)
+            cv.draw_rect(im_arr, *self.ROI, thickness=2)
+            pixmap = cv.ndarray2pixmap(im_arr)
+            self.canvas.setPixmap(pixmap)
+            self._recognize(im_roi)
+
+        def _recognize(self, im_arr):
+            result = self.ocr_engine.ndarray2text(im_arr)
+            logger.debug(">>> OCR: {}".format(result))
+            msg = 'OCR识别结果: {}'.format(result.strip())
+            self.statusBar().showMessage(msg)
+            return result
+
+
     import sys
     from PyQt5.QtWidgets import QApplication
 
     app = QApplication(sys.argv)
-    w = MainWnd_OCR()
+    w = MainWnd_OCR([800, 600])
+    w.set_roi([250, 200, 300, 100])
     w.show()
 
     sys.exit(app.exec_())

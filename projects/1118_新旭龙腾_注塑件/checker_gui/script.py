@@ -5,7 +5,7 @@
 # @Version : 0.2.1
 
 import numpy as np
-import ocv as cv
+import opencv as cv
 
 class UtilFaker:
     def imshow(self, *args, **kwargs):

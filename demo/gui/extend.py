@@ -13,6 +13,10 @@ from camera import Qt5Camera
 import opencv as cv
 import script
 
+class ScrollCanvas(ScrollCanvasBase):
+    def load_image(self, path_img):
+        return cv.imread(path_img)
+
 class MainWnd(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
@@ -48,17 +52,13 @@ QFrame {
         self.status_bar.showMessage("Welcome")
         self.footer.addWidget(self.status_bar)
 
-        self.canvas = QLabel("Camera frame", self)
-        self.canvas.setScaledContents(True)
-        self.canvas.setFixedSize(*left_win)
-        pixmap_label(self.canvas, QPixmap(*left_win))
+        self.canvas = ScrollCanvas(self)
+        self.canvas.set_image(np.zeros(left_win))
         self.left.addWidget(self.canvas)
         self.camera.dataUpdated.connect(self.update_frame)
 
-        self.processing = QLabel("Image Processing", self)
-        self.processing.setScaledContents(True)
-        self.processing.setFixedSize(*rup_win)
-        pixmap_label(self.processing, QPixmap(*rup_win))
+        self.processing = ScrollCanvas(self)
+        self.canvas.set_image(np.zeros(rup_win))
         self.rup.addWidget(self.processing)
 
         self.btn_update_script.clicked.connect(self.update_script)
@@ -73,9 +73,9 @@ QFrame {
         self.isPaused = not self.isPaused
 
     def save_image(self):
-        pixmap = self.canvas.pixmap()
-        im_arr = cv.pixmap2ndarray(pixmap)
-        cv.imsave(im_arr, "/home/brt/checker.jpg")
+        im_arr = self.canvas.get_image()
+        path_save = dialog_file_select(self, default_suffix=".jpg")
+        cv.imsave(im_arr, path_save[0])
 
     def switch_windows(self):
         self.isSwitched = not self.isSwitched
@@ -86,17 +86,14 @@ QFrame {
         left_win, rup_win = self.canvas, self.processing
         if self.isSwitched:
             left_win, rup_win = rup_win, left_win
-
-        pixmap_cap = cv.ndarray2pixmap(im_arr)
-        left_win.setPixmap(pixmap_cap)
+        left_win.set_image(im_arr)
 
         try:
             im_proc = script.improc(im_arr)
-            pixmap_proc = cv.ndarray2pixmap(im_proc)
         except Exception:
             traceback.print_exc()
-            pixmap_proc = QPixmap(400,300)
-        rup_win.setPixmap(pixmap_proc)
+            im_proc = np.zeros(400,300)
+        rup_win.set_image(im_proc)
 
 
 if __name__ == "__main__":

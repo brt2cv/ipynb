@@ -1523,6 +1523,16 @@ class QImageManager(QObject, ImageManager):
 
 #####################################################################
 
+try:
+    from opencv import ndarray2pixmap
+except ImportError:
+    # https://blog.csdn.net/watchful_guardian/article/details/102611867
+    def ndarray2pixmap(im_arr):
+        h, w = im_arr.shape[:2]
+        qimg = QImage(im_arr.data, w, h, w * im_arr.ndim, QImage.Format_RGB888)
+        return QPixmap.fromImage(qimg)
+
+
 def delta2units(delta):
     return delta / 120  # 8 * 15
 
@@ -1557,7 +1567,7 @@ class ScrollArea(QScrollArea):  # ViewerBase
         if im_arr is None:
             self.canvas.resetState()
         else:
-            pixmap = cv.ndarray2pixmap(im_arr)
+            pixmap = ndarray2pixmap(im_arr)
             self.canvas.loadPixmap(pixmap)
 
     def get_container(self):
@@ -1727,9 +1737,20 @@ class ScrollCanvasBase(ScrollArea):
             QMessageBox.warning(self, "警告", "只支持 png/jpg/bmp 图片文件")
             return
 
-        im_arr = cv.imread(path_file)
-        self.imgr.set_image(im_arr)
+        im_arr = self.load_image(path_file)
+        self.set_image(im_arr)
         self.set_fit_window()
+
+    def set_image(self, im_arr):
+        self.imgr.set_image(im_arr)
+
+    def get_image(self):
+        return self.imgr.get_image()
+
+    def load_image(self, path_img):
+        # im_arr = cv.imread(path_file)
+        raise NotImplementedError("请在子类中重写图像载入方法")
+
 
     # def set_ndarray(self, ndarray):
     #     pixmap = imgio.ndarray2pixmap(ndarray)
@@ -1747,14 +1768,14 @@ class ScrollCanvasBase(ScrollArea):
 # Dialog
 #####################################################################
 
-def dialog_file_select(parent, str_filter=None, canMutilSelect=False, onlyDir=False, saveSuffix=None):
+def dialog_file_select(parent, str_filter=None, mutil_select=False, only_dir=False, default_suffix=None):
     """ return a list of path (支持多选) """
     # caller = self.sender
     dialog = QFileDialog(parent)
-    if canMutilSelect:
+    if mutil_select:
         dialog.setFileMode(QFileDialog.ExistingFiles)
 
-    if onlyDir:
+    if only_dir:
         dialog.setFileMode(QFileDialog.Directory)  # 只显示目录
         dialog.setOption(QFileDialog.ShowDirsOnly)
     # else:
@@ -1763,8 +1784,8 @@ def dialog_file_select(parent, str_filter=None, canMutilSelect=False, onlyDir=Fa
     if str_filter:
         dialog.setNameFilter(str_filter)  # "Images (*.png *.xpm *.jpg)"
 
-    if saveSuffix:
-        dialog.setDefaultSuffix(saveSuffix)
+    if default_suffix:
+        dialog.setDefaultSuffix(default_suffix)
 
     if dialog.exec():
         list_path = dialog.selectedFiles()

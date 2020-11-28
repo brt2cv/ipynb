@@ -89,15 +89,18 @@ QFrame {
 
     def update_script(self):
         reload(script)
+        self.status_bar.showMessage("预处理脚本已更新")
 
     def camera_pause(self):
         self.isPaused = not self.isPaused
+        self.status_bar.showMessage("相机暂停" if self.isPaused else "相机恢复")
 
     def save_image(self):
         im_arr = self.canvas.get_image()
         path_save = dialog_file_select(self, default_suffix="jpg")
         if path_save:
             cv.imsave(im_arr, path_save[0])
+        self.status_bar.showMessage(f"图像保存成功【{path_save[0]}】")
 
     def switch_windows(self):
         self.isSwitched = not self.isSwitched

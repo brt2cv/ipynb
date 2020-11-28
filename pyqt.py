@@ -33,10 +33,10 @@ from PyQt5.QtGui import (QPixmap, QImage, QIcon, QPalette, QCursor, QPainter
 #####################################################################
 
 # class QApp:
-def run_qtapp(MainWndClass):
+def run_qtapp(MainWndClass, *args, **kwargs):
     app = QApplication([])
     try:
-        mwnd = MainWndClass(None)
+        mwnd = MainWndClass(*args, **kwargs)
         # qss渲染
         mwnd.setProperty("class", "bkg")  # for qss
         qss_background_color = """
@@ -76,6 +76,11 @@ def asQImage(im_arr):
         qimg_fmt = QImage.Format_ARGB32
     else:
         raise NotImplementedError("未知的数据格式")
+    # print(">>> QImage_Format:", {
+    #         QImage.Format_Grayscale8: "Grayscale8",
+    #         QImage.Format_RGB888: "RGB888",
+    #         QImage.Format_ARGB32: "ARGB32"
+    #     }[qimg_fmt])
     return QImage(im_arr.data, w, h, qimg_fmt)
 
 def asQPixmap(im_arr):

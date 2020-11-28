@@ -196,21 +196,34 @@ class Tesseract(OcrEngine):
 #####################################################################
 
 if __name__ == "__main__":
-    from PyQt5.QtWidgets import QMainWindow, QLabel
 
+    from importlib import reload
+    import traceback
+
+    # from PyQt5.QtWidgets import QMainWindow, QLabel
+    from pyqt import *
     from camera import Qt5Camera
     import opencv as cv
 
-    class MainWnd_OCR(QMainWindow):
+    try:
+        import script
+    except ImportError:
+        def improc(im):
+            # return cv.canny(im, 30)
+            return cv.threshold(im.copy(), 55)
+
+    CAMERA_RESOLUTION = [800,600]
+
+    class SimpleOCR(QMainWindow):
         statusbar_msg = '请移动画面，将字符置于识别框中'
 
-        def __init__(self, resolution):
+        def __init__(self):
             super().__init__()
             self.setWindowTitle("HeroJe - OCR字符识别")
             self.setGeometry(100, 100, 800, 630)
             self.statusBar().showMessage(self.statusbar_msg)
 
-            self.camera = Qt5Camera(0, resolution, isRGB=False)
+            self.camera = Qt5Camera(0, CAMERA_RESOLUTION, isRGB=False)
             self.camera.dataUpdated.connect(self._update_frame)
             # vbox = QVBoxLayout()
             # self.setLayout(vbox)
@@ -220,6 +233,7 @@ if __name__ == "__main__":
 
             self.ocr_engine = Tesseract(TessEnv["TessDataDir"],
                                         TessEnv["Lang"])
+            self.set_roi([250, 200, 300, 100])
             self.camera.start()
 
         def closeEvent(self, event):
@@ -249,12 +263,134 @@ if __name__ == "__main__":
             return result
 
 
-    import sys
-    from PyQt5.QtWidgets import QApplication
+    class LabelCanvas(ImarrMgrMixin, QLabel):
+        def __init__(self, parent):
+            super().__init__(parent)  # Minin继续调用的super(), 即QLabel
+            self.setAlignment(Qt.AlignCenter)
 
-    app = QApplication(sys.argv)
-    w = MainWnd_OCR([800, 600])
-    w.set_roi([250, 200, 300, 100])
-    w.show()
+            self.scaled_with_aspect = False
+            self.setPixmap(QPixmap())
 
-    sys.exit(app.exec_())
+        def setScaledContents(self, type_):
+            if type_ == 1:
+                super().setScaledContents(True)
+            else:
+                super().setScaledContents(False)
+            self.scaled_with_aspect = type_ > 1
+
+        def update_canvas(self):
+            pixmap = asQPixmap(self.curr)
+            if self.scaled_with_aspect:
+                im_h, im_w = self.curr.shape[:2]
+                aspect_ratio = im_h / im_w
+                w, h = self.width(), self.height()
+                w2 = round(h / aspect_ratio)
+                h2 = round(w * aspect_ratio)
+                pixmap = pixmap.scaled(min(w,w2), min(h,h2))
+            self.setPixmap(pixmap)
+
+
+    class MainWnd(QWidget):
+        statusbar_msg = '请移动画面，将字符置于识别框中'
+
+        def __init__(self, parent):
+            super().__init__(parent)
+            loadUi("demo/gui/ui/wx_mwnd_with_btns.ui", self)
+
+            self.isPaused = False
+            self.isSwitched = True
+
+            self.camera = Qt5Camera(0, [640,480], isRGB=0)
+            self._setup_ui()
+            self.camera.dataUpdated.connect(self.update_frame)
+
+            self.ocr_engine = Tesseract(TessEnv["TessDataDir"],
+                                        TessEnv["Lang"])
+            self.set_roi([250, 200, 300, 100])
+            self.camera.start()
+
+        def closeEvent(self, event):
+            super().closeEvent(event)
+            self.camera.stop()
+
+        def _setup_ui(self):
+            self.setWindowTitle("OpenCV图像处理")
+            # self.setGeometry(100, 100, 800, 650)
+            self.move(0,0)
+
+            self.controlers.setStyleSheet("""
+QFrame {
+    background-color: rgb(228, 231, 233);
+    border-radius: 6px;
+}""")
+
+            self.status_bar = QStatusBar(self)
+            self.status_bar.showMessage(self.statusbar_msg)
+            self.footer.addWidget(self.status_bar)
+
+            self.canvas = LabelCanvas(self)
+            self.canvas.setScaledContents(2)
+            self.left.addWidget(self.canvas)
+
+            self.processing = LabelCanvas(self)
+            self.processing.setScaledContents(1)
+            self.rup.addWidget(self.processing)
+
+            self.camera.dataUpdated.connect(self.update_frame)
+            self.btn_update_script.clicked.connect(self.update_script)
+            self.btn_pause.clicked.connect(self.camera_pause)
+            self.btn_save_image.clicked.connect(self.save_image)
+            self.btn_switch_wins.clicked.connect(self.switch_windows)
+
+        def update_script(self):
+            reload(script)
+            self.status_bar.showMessage("预处理脚本已更新")
+
+        def camera_pause(self):
+            self.isPaused = not self.isPaused
+            self.status_bar.showMessage("相机暂停" if self.isPaused else "相机恢复")
+
+        def save_image(self):
+            im_arr = self.canvas.get_image()
+            path_save = dialog_file_select(self, default_suffix="jpg")
+            if path_save:
+                cv.imsave(im_arr, path_save[0])
+            self.status_bar.showMessage(f"图像保存成功【{path_save[0]}】")
+
+        def switch_windows(self):
+            self.isSwitched = not self.isSwitched
+
+        def update_frame(self, im_arr):
+            if self.isPaused:
+                return
+
+            im_left = im_arr
+            try:
+                im_right = script.improc(im_left)
+            except Exception:
+                traceback.print_exc()
+                im_right = im_left
+
+            # 绘制ROI区域
+            cv.draw_rect(im_left, *self.ROI, thickness=2)
+            self._recognize(cv.crop(im_right, self.ROI))
+
+            if self.isSwitched:
+                im_left, im_right = im_right, im_left
+
+            im_resized = cv.rescale(im_right, 0.5)
+            self.canvas.set_image(im_left)
+            self.processing.set_image(im_resized)
+
+        def set_roi(self, roi):
+            self.ROI = roi
+
+        def _recognize(self, im_arr):
+            result = self.ocr_engine.ndarray2text(im_arr)
+            # logger.debug(">>> OCR: {}".format(result))
+            msg = f'OCR识别结果: {result}' if result else self.statusbar_msg
+            self.status_bar.showMessage(msg)
+            return result
+
+    # run_qtapp(SimpleOCR)
+    run_qtapp(MainWnd, None)

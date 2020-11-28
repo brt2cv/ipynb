@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-11-27
+# @Date    : 2020-11-28
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.3
+# @Version : 0.2.4
 
 import numpy as np
 import cv2
@@ -10,7 +10,7 @@ import cv2
 try:
     from utils.log import getLogger
     print("[+] {}: 启动调试Logger".format(__file__))
-    logger = getLogger(0)
+    logger = getLogger(10)
 except ImportError:
     from logging import getLogger
     print("[!] {}: 调用系统logging模块".format(__file__))
@@ -27,6 +27,8 @@ class CameraByOpenCV:
         """ resolution格式: [width, height] """
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
+        # self.cap.set(cv2.CAP_PROP_FPS, 20)
+        # self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc('M', 'J', 'P', 'G'))
         logger.info("[+] 摄像头像素设定为【{}x{}】".format(
                 self.cap.get(cv2.CAP_PROP_FRAME_WIDTH),
                 self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
@@ -34,6 +36,18 @@ class CameraByOpenCV:
 
     def set_format(self, isRGB):
         self.isRGB = isRGB
+
+    def set_exposure(self, value=None):
+        if value:
+            # where 0.25 means "manual exposure, manual iris"
+            self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)
+            print(">>> 已切换至【手动】曝光")
+            self.cap.set(cv2.CAP_PROP_EXPOSURE, value)
+            # 设置手动曝光后，除非重启，否则无法恢复为自动曝光模式
+
+    def set_white_balance(self, value=None):
+        if value:
+            self.cap.set(cv2.CAP_PROP_AUTO_WB, 0)
 
     def take_snapshot(self):
         isOK, im_frame = self.cap.read()
@@ -94,6 +108,8 @@ if __name__ == "__main__":
         camera = CameraByOpenCV(camera_num)
         camera.set_format(isRGB)
         camera.set_resolution(img_size if img_size else [640, 480])
+        camera.set_white_balance(True)
+        camera.set_exposure(-9)
 
         i = 0  # 用于存储命名
         while True:

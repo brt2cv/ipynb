@@ -30,7 +30,7 @@ class LabelCanvas(ImarrMgrMixin, QLabel):
         self.scaled_with_aspect = type_ > 1
 
     def update_canvas(self):
-        pixmap = asPixmap(self.curr)
+        pixmap = asQPixmap(self.curr)
         if self.scaled_with_aspect:
             im_h, im_w = self.curr.shape[:2]
             aspect_ratio = im_h / im_w

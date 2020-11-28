@@ -4,8 +4,8 @@
 # Purpose:      A simple packaging of Qt5 API
 # Author:       Bright Li
 # Modified by:
-# Created:      2020-11-27
-# Version:      [1.1.2]
+# Created:      2020-11-28
+# Version:      [1.1.3]
 # RCS-ID:       $$
 # Copyright:    (c) Bright Li
 # Licence:
@@ -61,6 +61,26 @@ class MainWnd(QWidget):
         super().__init__(parent)
         loadUi("ui/wx_mwnd.ui", self)
 """
+
+#####################################################################
+# Transform
+#####################################################################
+
+def asQImage(im_arr):
+    h, w = im_arr.shape[:2]
+    if im_arr.ndim < 3:
+        qimg_fmt = QImage.Format_Grayscale8
+    elif im_arr.shape[2] == 3:  # RGB
+        qimg_fmt = QImage.Format_RGB888
+    elif im_arr.shape[2] == 4:  # RGBA
+        qimg_fmt = QImage.Format_ARGB32
+    else:
+        raise NotImplementedError("未知的数据格式")
+    return QImage(im_arr.data, w, h, qimg_fmt)
+
+def asQPixmap(im_arr):
+    qimg = asQImage(im_arr)
+    return QPixmap.fromImage(qimg)
 
 #####################################################################
 # UI_tool

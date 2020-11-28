@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-11-27
+# @Date    : 2020-11-28
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.2
+# @Version : 0.2.3
 
 try:
     from utils.log import getLogger
@@ -127,11 +127,11 @@ class Tesseract(OcrEngine):
 
     def recognize(self):
         text = self.api.GetUTF8Text()
-        print("..", text)
-        text = text.strip("\n")
-        # text = text.strip()
-        if not text.strip():
-            return ""
+        text = text.strip()
+        # text = text.strip("\n").strip()
+        # text = text
+        # if not text.strip():
+        #     return ""
         if "confidence" in self.config:
             isValid = self.check_confidence(text)
             if not isValid:
@@ -202,11 +202,13 @@ if __name__ == "__main__":
     import opencv as cv
 
     class MainWnd_OCR(QMainWindow):
+        statusbar_msg = '请移动画面，将字符置于识别框中'
+
         def __init__(self, resolution):
             super().__init__()
             self.setWindowTitle("HeroJe - OCR字符识别")
             self.setGeometry(100, 100, 800, 630)
-            self.statusBar().showMessage('请移动画面，将字符置于识别框中')
+            self.statusBar().showMessage(self.statusbar_msg)
 
             self.camera = Qt5Camera(0, resolution, isRGB=False)
             self.camera.dataUpdated.connect(self._update_frame)
@@ -218,7 +220,6 @@ if __name__ == "__main__":
 
             self.ocr_engine = Tesseract(TessEnv["TessDataDir"],
                                         TessEnv["Lang"])
-
             self.camera.start()
 
         def closeEvent(self, event):
@@ -242,8 +243,8 @@ if __name__ == "__main__":
 
         def _recognize(self, im_arr):
             result = self.ocr_engine.ndarray2text(im_arr)
-            logger.debug(">>> OCR: {}".format(result))
-            msg = 'OCR识别结果: {}'.format(result.strip())
+            # logger.debug(">>> OCR: {}".format(result))
+            msg = f'OCR识别结果: {result}' if result else self.statusbar_msg
             self.statusBar().showMessage(msg)
             return result
 

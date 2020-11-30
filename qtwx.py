@@ -1,11 +1,11 @@
 
 ###############################################################################
-# Name:         pyqt5_ext
+# Name:         pyqt5_widgets
 # Purpose:      A simple packaging of Qt5 API
 # Author:       Bright Li
 # Modified by:
-# Created:      2020-11-28
-# Version:      [1.1.3]
+# Created:      2020-11-30
+# Version:      [1.1.4]
 # RCS-ID:       $$
 # Copyright:    (c) Bright Li
 # Licence:
@@ -61,31 +61,6 @@ class MainWnd(QWidget):
         super().__init__(parent)
         loadUi("ui/wx_mwnd.ui", self)
 """
-
-#####################################################################
-# Transform
-#####################################################################
-
-def asQImage(im_arr):
-    h, w = im_arr.shape[:2]
-    if im_arr.ndim < 3:
-        qimg_fmt = QImage.Format_Grayscale8
-    elif im_arr.shape[2] == 3:  # RGB
-        qimg_fmt = QImage.Format_RGB888
-    elif im_arr.shape[2] == 4:  # RGBA
-        qimg_fmt = QImage.Format_ARGB32
-    else:
-        raise NotImplementedError("未知的数据格式")
-    # print(">>> QImage_Format:", {
-    #         QImage.Format_Grayscale8: "Grayscale8",
-    #         QImage.Format_RGB888: "RGB888",
-    #         QImage.Format_ARGB32: "ARGB32"
-    #     }[qimg_fmt])
-    return QImage(im_arr.data, w, h, qimg_fmt)
-
-def asQPixmap(im_arr):
-    qimg = asQImage(im_arr)
-    return QPixmap.fromImage(qimg)
 
 #####################################################################
 # UI_tool
@@ -346,54 +321,6 @@ class UnitSpinbox(UnitBase):
 
     def get_value(self):
         return self.spinbox.value()
-
-#####################################################################
-# Mixin
-#####################################################################
-
-class ImarrMgrMixin:
-    imageUpdated = pyqtSignal()  # np.ndarray
-
-    def __init__(self, *args, **kwargs):
-        # print(">>>", *args, **kwargs)
-        super().__init__(*args, **kwargs)
-        self.curr = None
-        self._snapshots = []  # Stack()
-        self.imageUpdated.connect(self.update_canvas)
-
-    @property
-    def snapshot(self):
-        return self.get_snapshot()
-
-    @property
-    def snapshots(self):
-        return self._snapshots
-
-    def get_snapshot(self):
-        return self._snapshots[-1]
-
-    def push_snapshot(self):
-        self._snapshots.append(self.curr)
-
-    take_snapshot = push_snapshot
-
-    def pop_snapshot(self):
-        return self._snapshots.pop()
-
-    @property
-    def image(self):
-        return self.get_image()
-
-    def get_image(self):
-        return self.curr
-
-    def set_image(self, im_arr):
-        # assert isinstance(im_arr, np.ndarray), f"请传入np.ndarray的图像格式：【{type(im_arr)}】"
-        self.curr = im_arr
-        self.imageUpdated.emit()
-
-    def update_canvas(self):
-        raise NotImplementedError()
 
 #####################################################################
 # Dialog

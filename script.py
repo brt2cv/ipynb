@@ -12,6 +12,9 @@ class UtilFaker:
         """ 不显示图像 """
 uu = UtilFaker()
 
-def improc(im):
-    # return cv.canny(im, 30)
-    return cv.threshold(im, 55)
+
+def improc(im, *args):
+    return cv.threshold(im, args[0])
+
+def improc_ocr(im, *args):
+    return cv.threshold(im, args[0])

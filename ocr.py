@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-11-30
+# @Date    : 2020-12-02
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.4
+# @Version : 0.2.5
 
 try:
     from utils.log import getLogger
@@ -199,7 +199,7 @@ class Tesseract(OcrEngine):
 from threading import Thread, Event
 from PyQt5.QtCore import pyqtSignal, QObject
 
-# class KeepRunningThread(Thread):
+# class KeepThreadingMixin(Thread):
 #     def __init__(self):
 #         super().__init__()
 #         self.isRunning = Event()
@@ -228,6 +228,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 import queue
 
 class TesseractThread(QObject, Thread, OcrEngine):
+    """ 提供了独立的Python线程运行，以pyqtSignal异步的方式通知result """
     textRecognized = pyqtSignal(str)
     buff_size = 3
 
@@ -311,6 +312,27 @@ class TesseractThread(QObject, Thread, OcrEngine):
 #             return
 #         super().ndarray2text(im_arr)
 
+
+class OcrEngineMixin:
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+
+    def ocr_init(self, dir_tessdata, lang):
+        self.ocr_engine = TesseractThread(dir_tessdata, lang)
+        self.ocr_engine.textRecognized.connect(self.ocr_result)
+        self.ocr_engine.start()
+
+    def ocr_exec(self, im_arr):
+        """ 异步处理，故而无返回值 """
+        self.ocr_engine.ndarray2text(im_arr)
+
+    def ocr_result(self, result):
+        """ 回调函数，用于处理result结果 """
+        logger.debug(">>> OCR: {}".format(result))
+        # msg = f'OCR识别结果: {result}' if result else self.statusbar_msg
+        # self.status_bar.showMessage(msg)
+
+
 #####################################################################
 
 if __name__ == "__main__":
@@ -374,33 +396,55 @@ if __name__ == "__main__":
             return result
 
 
-    class MainWnd(BaseCvWnd):
+    class MainWnd(OcrEngineMixin, BaseCvWnd):
         statusbar_msg = '请移动画面，将字符置于识别框中'
 
         def __init__(self, parent, camera_idx=0, solution=None, isRGB=False):
             super().__init__(parent, camera_idx, solution, isRGB)
-            # self.ocr_engine = Tesseract(TessEnv["TessDataDir"], TessEnv["Lang"])
-            self.ocr_engine = TesseractThread(TessEnv["TessDataDir"], TessEnv["Lang"])
-            self.ocr_engine.textRecognized.connect(self.show_result)
 
             self.setWindowTitle("OCR字符识别")
             self.set_roi([250, 200, 300, 100])
-            self.ocr_engine.start()
+
+            self.ocr_init(TessEnv["TessDataDir"], TessEnv["Lang"])
+
+        def update_script(self):
+            """ 由于关乎可变脚本script，故需要在子类重写 """
+            reload(script)
+            self.status_bar.showMessage("预处理脚本已更新")
+
+        def define_improc(self):
+            """ 由于关乎可变脚本script，故需要在子类重写 """
+            self.improc_methods = {
+                "window2": script.improc_ocr,  # make_right
+                "parse_roi": script.improc_ocr,
+            }
+
+        def ocr_result(self, result):
+            # logger.debug(">>> OCR: {}".format(result))
+            msg = f'OCR识别结果: {result}' if result else self.statusbar_msg
+            self.status_bar.showMessage(msg)
 
         def update_frame(self, im_arr):
             if self.isPaused:
                 return
 
             im_left = im_arr
+            list_params = []
+            for wx_slider in self.list_params:
+                list_params.append(wx_slider.get_value())
             try:
-                im_right = script.improc(im_left)
+                im_right = self.improc_methods["window2"](im_left, *list_params)
             except Exception:
                 traceback.print_exc()
                 im_right = im_left
 
             # 绘制ROI区域
-            cv.draw_rect(im_left, *self.ROI, thickness=2)
-            self._recognize(cv.crop(im_right, self.ROI))
+            if self.ROI:
+                cv.draw_rect(im_left, *self.ROI, thickness=2)
+                func = self.improc_methods.get("parse_roi")
+                if func:
+                    im_text = func(cv.crop(im_left, self.ROI), *list_params)
+                    self.ocr_exec(im_text)
 
             if self.isSwitched:
                 im_left, im_right = im_right, im_left
@@ -409,14 +453,6 @@ if __name__ == "__main__":
             self.canvas.set_image(im_left)
             self.processing.set_image(im_resized)
 
-        def _recognize(self, im_arr):
-            self.ocr_engine.ndarray2text(im_arr)
-
-        def show_result(self, result):
-            logger.debug(">>> OCR: {}".format(result))
-            msg = f'OCR识别结果: {result}' if result else self.statusbar_msg
-            self.status_bar.showMessage(msg)
-            return result
 
     # run_qtapp(SimpleOCR)
     run_qtapp(MainWnd, None, solution=[800,600])

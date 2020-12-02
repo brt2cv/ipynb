@@ -82,12 +82,6 @@ class ImarrMgrMixin:
     def update_canvas(self):
         raise NotImplementedError()
 
-class ThreadingMixin:
-
-    def __init__(self):
-        pass
-
-
 #####################################################################
 # Widgets
 #####################################################################
@@ -118,8 +112,6 @@ class LabelCanvas(ImarrMgrMixin, QLabel):
             pixmap = pixmap.scaled(min(w,w2), min(h,h2))
         self.setPixmap(pixmap)
 
-
-
 #####################################################################
 # Entrance
 #####################################################################
@@ -133,7 +125,7 @@ class BaseCvWnd(QWidget):
 
     def __init__(self, parent, camera_idx=0, solution=None, isRGB=False, roi=None):
         super().__init__(parent)
-        loadUi("demo/gui/ui/wx_mwnd_with_btns.ui", self)
+        loadUi("demo/gui/ui/wx_mwnd_with_ctrllers.ui", self)
 
         self.isPaused = False
         self.isSwitched = True
@@ -142,7 +134,9 @@ class BaseCvWnd(QWidget):
             solution = [640,480]
         self.camera = Qt5Camera(camera_idx, solution, isRGB)
         self._setup_ui()
+        self.define_improc()
         self.camera.dataUpdated.connect(self.update_frame)
+        self.camera.readError.connect(self.close)
         self.set_roi(roi)
         self.camera.start()
 
@@ -162,6 +156,12 @@ border-radius: 6px;
         self.status_bar.showMessage(self.statusbar_msg)
         self.footer.addWidget(self.status_bar)
 
+        self.list_params = []
+        for i in range(3):
+            wx = UnitSlider(self, f"param{i}", val_range=[0,256], val_default=128, isCheckbox=False)
+            self.ctrller.addWidget(wx)
+            self.list_params.append(wx)
+
         self.canvas = LabelCanvas(self)
         self.canvas.setScaledContents(2)
         self.left.addWidget(self.canvas)
@@ -177,8 +177,10 @@ border-radius: 6px;
         self.btn_switch_wins.clicked.connect(self.switch_windows)
 
     def update_script(self):
-        reload(script)
-        self.status_bar.showMessage("预处理脚本已更新")
+        """ 由于关乎可变脚本script，故需要在子类重写 """
+        # reload(script)
+        # self.status_bar.showMessage("预处理脚本已更新")
+        raise NotADirectoryError()
 
     def camera_pause(self):
         self.isPaused = not self.isPaused
@@ -194,13 +196,24 @@ border-radius: 6px;
     def switch_windows(self):
         self.isSwitched = not self.isSwitched
 
+    def define_improc(self):
+        """ 由于关乎可变脚本script，故需要在子类重写 """
+        # self.improc_methods = {
+        #     "window2": script.improc,  # make_right
+        #     "parse_roi": None,
+        # }
+        raise NotADirectoryError()
+
     def update_frame(self, im_arr):
         if self.isPaused:
             return
 
         im_left = im_arr
+        list_params = []
+        for wx_slider in self.list_params:
+            list_params.append(wx_slider.get_value())
         try:
-            im_right = script.improc(im_left)
+            im_right = self.improc_methods["window2"](im_left, *list_params)
         except Exception:
             traceback.print_exc()
             im_right = im_left
@@ -208,6 +221,9 @@ border-radius: 6px;
         # 绘制ROI区域
         if self.ROI:
             cv.draw_rect(im_left, *self.ROI, thickness=2)
+            func = self.improc_methods.get("parse_roi")
+            if func:
+                func(cv.crop(im_left, self.ROI), *list_params)
 
         if self.isSwitched:
             im_left, im_right = im_right, im_left

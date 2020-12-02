@@ -115,8 +115,8 @@ if __name__ == "__main__":
         camera = CameraByOpenCV(camera_num)
         camera.set_format(isRGB)
         camera.set_resolution(img_size if img_size else [640, 480])
-        camera.set_white_balance(True)
-        camera.set_exposure(-9)
+        # camera.set_white_balance(True)
+        # camera.set_exposure(-9)
 
         i = 0  # 用于存储命名
         while True:

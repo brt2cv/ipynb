@@ -35,6 +35,7 @@ from PyQt5.QtGui import (QPixmap, QImage, QIcon, QPalette, QCursor, QPainter
 # class QApp:
 def run_qtapp(MainWndClass, *args, **kwargs):
     app = QApplication([])
+    mwnd = None
     try:
         mwnd = MainWndClass(*args, **kwargs)
         # qss渲染
@@ -52,7 +53,8 @@ background-color: rgb(185, 194, 202);
         print("[!]", e, "\nMore Detail:\n" + "="*69)
         traceback.print_exc()
         print("="*69)
-        # mwnd.close()
+        if mwnd:
+            mwnd.close()
         app.exit()
 
 """

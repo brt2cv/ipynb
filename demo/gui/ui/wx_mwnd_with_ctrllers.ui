@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>798</width>
+    <height>402</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -129,6 +129,9 @@
           </property>
          </layout>
         </widget>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="ctrller"/>
        </item>
        <item>
         <widget class="QFrame" name="controlers">

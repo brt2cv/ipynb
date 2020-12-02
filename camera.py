@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-11-28
+# @Date    : 2020-12-01
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.4
+# @Version : 0.2.5
 
 import numpy as np
 import cv2
@@ -28,7 +28,7 @@ class CameraByOpenCV:
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
         # self.cap.set(cv2.CAP_PROP_FPS, 20)
-        # self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc('M', 'J', 'P', 'G'))
+        self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc('M','J','P','G'))
         logger.info("[+] 摄像头像素设定为【{}x{}】".format(
                 self.cap.get(cv2.CAP_PROP_FRAME_WIDTH),
                 self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
@@ -67,6 +67,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 
 class Qt5Camera(QObject, Thread):
     dataUpdated = pyqtSignal(np.ndarray)  # PIL.Image.Image
+    readError = pyqtSignal()
 
     def __init__(self, n, resolution=None, isRGB=True):
         QObject.__init__(self)
@@ -96,8 +97,14 @@ class Qt5Camera(QObject, Thread):
         while self.isRunning.is_set():
             if self.isPause.is_set():
                 return
-            im_frame = self.camera.take_snapshot()
-            self.dataUpdated.emit(im_frame)
+            try:
+                im_frame = self.camera.take_snapshot()
+            except Exception as e:
+                logger.error(e)
+                self.isRunning.clear()
+                self.readError.emit()
+            else:
+                self.dataUpdated.emit(im_frame)
 
 #####################################################################
 

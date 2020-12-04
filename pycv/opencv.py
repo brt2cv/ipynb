@@ -358,7 +358,7 @@ def rotate(im, angle):
 def crop(im, roi):
     """ roi: (x, y, w, h) """
     x, y, w, h = roi
-    return im[y:y+h, x:x+w]
+    return im[y:y+h, x:x+w].copy()
 
 def crop2(im, top_left, bottom_right):
     x, y = top_left
@@ -654,12 +654,12 @@ def find_circles(im, r_dist, threshold=100, canny_level=100, r_min=0, r_max=0):
 def match_template(im, template, threshold):
     """ 匹配符合最低阈值的全部点信息
     method:
-        * CV_TM_SQDIFF: 平方差匹配法：该方法采用平方差来进行匹配；最好的匹配值为0；匹配越差，匹配值越大。
-        * CV_TM_CCORR: 相关匹配法：该方法采用乘法操作；数值越大表明匹配程度越好。
-        * CV_TM_CCOEFF: 相关系数匹配法：1表示完美的匹配；-1表示最差的匹配。
-        * CV_TM_SQDIFF_NORMED: 归一化平方差匹配法
-        * CV_TM_CCORR_NORMED: 归一化相关匹配法
-        * CV_TM_CCOEFF_NORMED: 归一化相关系数匹配法
+        * cv2.TM_SQDIFF: 平方差匹配法：该方法采用平方差来进行匹配；最好的匹配值为0；匹配越差，匹配值越大。
+        * cv2.TM_CCORR: 相关匹配法：该方法采用乘法操作；数值越大表明匹配程度越好。
+        * cv2.TM_CCOEFF: 相关系数匹配法：1表示完美的匹配；-1表示最差的匹配。
+        * cv2.TM_SQDIFF_NORMED: 归一化平方差匹配法
+        * cv2.TM_CCORR_NORMED: 归一化相关匹配法
+        * cv2.TM_CCOEFF_NORMED: 归一化相关系数匹配法
     """
     result = cv2.matchTemplate(im, template, cv2.TM_SQDIFF_NORMED)
     max_distance = min(template.shape[:2])
@@ -688,7 +688,7 @@ def match_template(im, template, threshold):
 
 def find_template(im, template):
     """ 获取最优匹配度的信息 """
-    result = cv2.matchTemplate(im, template, cv2.TM_SQDIFF_NORMED)
+    result = cv2.matchTemplate(im, template, cv2.TM_CCOEFF_NORMED)
     pos = np.unravel_index(np.argmax(result), result.shape)  # 相似度最高的顶点位置
     similarity = result[pos[0]][pos[1]]
     return pos, similarity

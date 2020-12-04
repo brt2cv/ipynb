@@ -17,4 +17,8 @@ def improc(im, *args):
     return cv.threshold(im, args[0])
 
 def improc_ocr(im, *args):
-    return cv.threshold(im, args[0])
+    im_gau = cv.gaussian(im, 3)
+    # im_bin = cv.threshold(im, args[0])
+    # im_med = cv.median(im_bin, 3)
+    return im_gau
+

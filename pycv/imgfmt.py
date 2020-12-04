@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-10-06
+# @Date    : 2020-12-03
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.1.6
+# @Version : 0.1.7
 
 import os
 from logging import getLogger
@@ -121,7 +121,7 @@ def size_resolution(path_img, thresh):
     """ thresh should be a tuple like (960, 480), and w >= h """
     try:
         w,h = get_resolution_byJhead(path_img)
-    except:
+    except NameError:
         w,h = _get_resolution_byPIL(path_img)
     return w <= max(thresh) or h <= min(thresh)  # and ??
 

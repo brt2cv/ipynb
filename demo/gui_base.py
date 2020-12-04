@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-# @Date    : 2020-11-27
+# @Date    : 2020-12-04
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.3
+# @Version : 0.2.4
 
-from pyqt import *
-from camera import Qt5Camera
-import opencv as cv
+from pyqt.qtwx import *
+from pycv.camera import Qt5Camera
+import pycv.opencv as cv
 import script
 
 class MainWnd(QWidget):
@@ -55,4 +55,4 @@ class MainWnd(QWidget):
         self.processing.setPixmap(pixmap_proc)
 
 if __name__ == "__main__":
-    run_qtapp(MainWnd)
+    run_qtapp(MainWnd, None)

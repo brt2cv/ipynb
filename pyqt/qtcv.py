@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-# @Date    : 2020-11-30
+# @Date    : 2020-12-04
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.1
+# @Version : 0.2.2
 
 import numpy as np
 
-import opencv as cv
-from qtwx import *
+from .qtwx import *
+import pycv.opencv as cv
 
 #####################################################################
 # Transform
@@ -116,7 +116,7 @@ class LabelCanvas(ImarrMgrMixin, QLabel):
 # Entrance
 #####################################################################
 
-from camera import Qt5Camera
+from pycv.camera import Qt5Camera
 from importlib import reload
 import traceback
 
@@ -125,7 +125,6 @@ class BaseCvWnd(QWidget):
 
     def __init__(self, parent, camera_idx=0, solution=None, isRGB=False, roi=None):
         super().__init__(parent)
-        loadUi("demo/gui/ui/wx_mwnd_with_ctrllers.ui", self)
 
         self.isPaused = False
         self.isSwitched = True
@@ -133,7 +132,7 @@ class BaseCvWnd(QWidget):
         if solution is None:
             solution = [640,480]
         self.camera = Qt5Camera(camera_idx, solution, isRGB)
-        self._setup_ui()
+        # self._setup_ui()
         self.define_improc()
         self.camera.dataUpdated.connect(self.update_frame)
         self.camera.readError.connect(self.close)

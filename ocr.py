@@ -13,13 +13,6 @@ except ImportError:
     print("[!] {}: 调用系统logging模块".format(__file__))
     logger = getLogger(__file__)
 
-TessEnv = {
-    # "TesseractBinPath": "D:/programs/Tesseract",
-    "TessDataDir": "/home/brt/ws/tmv/src/plugins/tesseract/tessdata/demo",
-    # "TessDataDir": "D:/Home/workspace/tmv/src/plugins/tesseract/tessdata/demo",
-    "Lang": "eng"
-}
-
 #####################################################################
 import os
 from PIL import Image

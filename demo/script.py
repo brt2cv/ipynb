@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-# @Date    : 2020-11-27
+# @Date    : 2020-12-04
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.1
+# @Version : 0.2.2
 
 import numpy as np
-import opencv as cv
+import pycv.opencv as cv
 
 class UtilFaker:
     def imshow(self, *args, **kwargs):
@@ -21,4 +21,3 @@ def improc_ocr(im, *args):
     # im_bin = cv.threshold(im, args[0])
     # im_med = cv.median(im_bin, 3)
     return im_gau
-

@@ -7,10 +7,10 @@
 from importlib import reload
 import traceback
 
-from pyqt import *
-
-from camera import Qt5Camera
-import opencv as cv
+from pyqt.qtwx import *
+from pyqt.qtcv import *
+from pycv.camera import Qt5Camera
+import pycv.opencv as cv
 import script
 
 
@@ -44,7 +44,7 @@ class LabelCanvas(ImarrMgrMixin, QLabel):
 class MainWnd(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
-        loadUi("ui/wx_mwnd_with_btns.ui", self)
+        loadUi("ui/wx_mwnd_with_ctrllers.ui", self)
 
         self.isPaused = False
         self.isSwitched = True
@@ -125,4 +125,4 @@ QFrame {
 
 
 if __name__ == "__main__":
-    run_qtapp(MainWnd)
+    run_qtapp(MainWnd, None)

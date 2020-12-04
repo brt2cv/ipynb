@@ -55,23 +55,30 @@ def run_for_test():
 
 FieldDegree = [1.167, 0.922]  # [66.88, 50.25]
 
+def fov(dist):
+    w = math.tan(FieldDegree[0] /2) * dist *2
+    h = math.tan(FieldDegree[1] /2) * dist *2
+    return (w,h)
+
+def acc(resolution, dist):
+    w, _ = fov(dist)
+    return round(w/resolution[0],3)
+
 def compute_fov(resolution, dist):
-    def fov(dist):
-        w = math.tan(FieldDegree[0] /2) * dist *2
-        h = math.tan(FieldDegree[1] /2) * dist *2
-        return (w,h)
-
-    def acc(resolution, dist):
-        w, _ = fov(dist)
-        return round(w/resolution[0],3)
-
     FOV = fov(dist)
     accurate = acc(resolution, dist)
     print(f"[+] 当前条件下的视野范围【{FOV}】，精度【{accurate}】")
 
-def comput_dist(fov):
-    dist = round(fov/2 / math.tan(FieldDegree[0] /2), 2)
+def compute_dist(fov_w):
+    dist = round(fov_w/2 / math.tan(FieldDegree[0] /2), 2)
     print(f"[+] 需要至少在【{dist}】距离才能获取到足够的视野")
+
+def compute_udf(resolution, fov_h):
+    dist = round(fov_h/2 / math.tan(FieldDegree[1] /2), 2)
+    dist_range = [round(dist*0.9), round(dist*1.2)]
+    fov_ = fov(dist_range[1])
+    acc_range = [acc(resolution, d) for d in dist_range]
+    print(f"标准工作距离：{dist}\n焦距范围：{dist_range}\n视野范围：{fov_}\n精度范围：{acc_range}")
 
 
 if __name__ == "__main__":
@@ -85,6 +92,7 @@ if __name__ == "__main__":
         parser.add_argument("-r", "--resolution", type=float, default=5, help="相机分辨率，可选[0.3,0.5,1,2,5]")
         parser.add_argument("-d", "--dist", type=int, help="求特定工作距离dist下的视野范围，单位mm")
         parser.add_argument("-f", "--FOV", type=int, help="求满足特定FOV时的最小工作距离，单位mm")
+        parser.add_argument("-u", "--udf", type=int, help="自定义")
         return parser.parse_args()
 
     args = getopt()
@@ -104,4 +112,6 @@ if __name__ == "__main__":
         compute_fov(resolution, dist)
     elif args.FOV:
         min_size = args.FOV
-        comput_dist(min_size)
+        compute_dist(min_size)
+    elif args.udf:
+        compute_udf(resolution, args.udf)

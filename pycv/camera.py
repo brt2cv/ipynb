@@ -27,7 +27,7 @@ class CameraByOpenCV:
         """ resolution格式: [width, height] """
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
-        # self.cap.set(cv2.CAP_PROP_FPS, 20)
+        # self.cap.set(cv2.CAP_PROP_FPS, 1)  # 测试无效
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc('M','J','P','G'))
         logger.info("[+] 摄像头像素设定为【{}x{}】".format(
                 self.cap.get(cv2.CAP_PROP_FRAME_WIDTH),

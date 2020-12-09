@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-12-02
+# @Date    : 2020-12-08
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.5
+# @Version : 0.2.6
 
 try:
     from utils.log import getLogger
@@ -18,7 +18,6 @@ import os
 from PIL import Image
 
 try:
-    import tesserocr
     from tesserocr import PyTessBaseAPI, RIL
     HasImportTesserocr = True
 except ImportError:
@@ -104,14 +103,14 @@ class Tesseract(OcrEngine):
         # 对于portable版本的Tesseract，需要在PyTessBaseAPI对象初始化时，指定path
         assert os.path.exists(dir_tessdata)
         self.api = PyTessBaseAPI(path=dir_tessdata, lang=lang)
+        # self.api.SetVariable("tessedit_char_whitelist", "0123456789")
+        self.api.SetVariable("tessedit_char_blacklist", "abcdefghijklmn")
+        # self.api.SetVariable("classify_bln_numeric_mode", "1")
         self.config = {}
 
     def __del__(self):
         if self.isRunning:
             self.destroy()
-
-    def version(self):
-        print("python-tesserocr Version:\n", tesserocr.tesseract_version())
 
     def destroy(self):
         logger.debug("释放Tesseract引擎")
@@ -119,6 +118,7 @@ class Tesseract(OcrEngine):
         self.isRunning = True
 
     def recognize(self):
+        # self.api.SetVariable("classify_bln_numeric_mode", "1")
         text = self.api.GetUTF8Text()
         text = text.strip()
         # text = text.strip("\n").strip()
@@ -332,11 +332,11 @@ if __name__ == "__main__":
 
     from importlib import reload
     import traceback
-    from qtwx import *
-    from qtcv import BaseCvWnd
-    from camera import Qt5Camera
-    import opencv as cv
-    import script
+    from pyqt.qtwx import *
+    from pyqt.qtcv import BaseCvWnd
+    from pycv.camera import Qt5Camera
+    import pycv.opencv as cv
+    from Demo import script
 
     CAMERA_RESOLUTION = [800,600]
 

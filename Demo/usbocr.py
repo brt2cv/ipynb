@@ -17,8 +17,8 @@ import script
 
 TessEnv = {
     # "TesseractBinPath": "D:/programs/Tesseract",
-    "TessDataDir": "/home/brt/ws/tmv/src/plugins/tesseract/tessdata/demo",
-    # "TessDataDir": "D:/Home/workspace/tmv/src/plugins/tesseract/tessdata/demo",
+    # "TessDataDir": "/home/brt/ws/tmv/src/plugins/tesseract/tessdata/demo",
+    "TessDataDir": "D:/Home/workspace/tmv/src/plugins/tesseract/tessdata/demo",
     "Lang": "eng"
 }
 
@@ -31,7 +31,8 @@ class MainWnd(OcrEngineMixin, BaseCvWnd):
         super()._setup_ui()
 
         self.setWindowTitle("OCR字符识别")
-        self.set_roi([250, 200, 300, 100])
+        # self.set_roi([250, 200, 300, 100])
+        self.ROI = True
 
         self.ocr_init(TessEnv["TessDataDir"], TessEnv["Lang"])
 
@@ -39,6 +40,7 @@ class MainWnd(OcrEngineMixin, BaseCvWnd):
         """ 由于关乎可变脚本script，故需要在子类重写 """
         reload(script)
         self.status_bar.showMessage("预处理脚本已更新")
+        self.define_improc()
 
     def define_improc(self):
         """ 由于关乎可变脚本script，故需要在子类重写 """
@@ -68,10 +70,9 @@ class MainWnd(OcrEngineMixin, BaseCvWnd):
 
         # 绘制ROI区域
         if self.ROI:
-            cv.draw_rect(im_left, *self.ROI, thickness=2)
             func = self.improc_methods.get("parse_roi")
             if func:
-                im_text = func(cv.crop(im_left, self.ROI), *list_params)
+                im_text = func(im_left, *list_params)
                 self.ocr_exec(im_text)
 
         if self.isSwitched:

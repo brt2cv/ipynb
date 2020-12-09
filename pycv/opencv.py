@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-11-27
+# @Date    : 2020-12-08
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.0.8
+# @Version : 0.2.9
 
 import os
 import platform
@@ -951,7 +951,7 @@ def find_blobs(im, thresholds=None, invert=False):
 + thickness: 控制线的粗细像素。
 """
 
-def draw_polygon(img, list_pnts, color=None, thickness=1, fill=False):
+def draw_polygon(img, list_pnts, color=None, thickness=3, fill=False):
     # if DEBUG_MODE:
     #     list_pnts.dtype == ""
     if color is None:
@@ -959,33 +959,33 @@ def draw_polygon(img, list_pnts, color=None, thickness=1, fill=False):
     list_pnts = np.array([(int(p[0]), int(p[1])) for p in list_pnts])
     cv2.polylines(img, [list_pnts], True, color, thickness, lineType=cv2.LINE_AA)
 
-def draw_line(img, a, b, color=None, thickness=1):
+def draw_line(img, a, b, color=None, thickness=3):
     if color is None:
         color = (255,0,0) if img.ndim == 3 else 255
     cv2.line(img, tuple(int(i) for i in a), tuple(int(i) for i in b),
             color, thickness, lineType=cv2.LINE_AA)  # 抗锯齿线型
 
-def draw_lines(img, list_pnts, color=None, thickness=1, fill=False):
+def draw_lines(img, list_pnts, color=None, thickness=3):
     if color is None:
         color = (255,0,0) if img.ndim == 3 else 255
     list_pnts = np.array([(int(p[0]), int(p[1])) for p in list_pnts])
     cv2.polylines(img, [list_pnts], False, color, thickness, lineType=cv2.LINE_AA)
 
-def draw_rect2(img, top_left, bottom_right, color=None, thickness=1, fill=False):
+def draw_rect2(img, top_left, bottom_right, color=None, thickness=3, fill=False):
     if color is None:
         color = (255,0,0) if img.ndim == 3 else 255
     cv2.rectangle(img, tuple(int(i) for i in top_left),
             tuple(int(i) for i in bottom_right), color, thickness, lineType=cv2.LINE_AA)
 
-def draw_rect(img, x, y, w, h, color=None, thickness=1, fill=False):
+def draw_rect(img, x, y, w, h, color=None, thickness=3, fill=False):
     draw_rect2(img, (x,y), (x+w,y+h), color, thickness, fill)
 
-def draw_circle(img, x, y, radius, color=None, thickness=1, fill=False):
+def draw_circle(img, x, y, radius, color=None, thickness=3, fill=False):
     if color is None:
         color = (255,0,0) if img.ndim == 3 else 255
     cv2.circle(img, (int(x),int(y)), int(radius), color, thickness, lineType=cv2.LINE_AA)
 
-def draw_ellipse(img, center, axes, rotation: float, color=None, thickness=1, fill=False):
+def draw_ellipse(img, center, axes, rotation: float, color=None, thickness=3, fill=False):
     """ center: tuple of point(x,y)
         axes:   tuple of (dx, dy) """
     if color is None:
@@ -996,24 +996,24 @@ def draw_ellipse(img, center, axes, rotation: float, color=None, thickness=1, fi
     cv2.ellipse(img, (cx, cy), (rx, ry), rotation, startAngle, endAngle,
         color, thickness, lineType=cv2.LINE_AA)
 
-def draw_string(img, x, y, text, scale=1, color=None, thickness=1, font=cv2.FONT_HERSHEY_SIMPLEX):
+def draw_string(img, x, y, text, scale=1, color=None, thickness=3, font=cv2.FONT_HERSHEY_SIMPLEX):
     if color is None:
         color = (255,0,0) if img.ndim == 3 else 255
     cv2.putText(img, text, (int(x),int(y)), font, scale, color, thickness)
 
 draw_text = draw_string
 
-def draw_contours(img, list_cnts, color=None, thickness=1, fill=False):
+def draw_contours(img, list_cnts, color=None, thickness=3, fill=False):
     if color is None:
         color = (255,0,0) if img.ndim == 3 else 255
     cv2.drawContours(img, list_cnts, -1, color, thickness, lineType=cv2.LINE_AA)
 
-def draw_points(img, list_points, color=None, thickness=1, fill=False):
+def draw_points(img, list_points, color=None):
     if color is None:
         color = (255,0,0) if img.ndim == 3 else 255
     cv2.drawKeypoints(img, list_points, None, color)
 
-def draw_cross(img, x, y, color=None, size=5, thickness=1):
+def draw_cross(img, x, y, color=None, size=5, thickness=3):
     if color is None:
         color = (255,0,0) if img.ndim == 3 else 255
     x,y = int(x), int(y)

@@ -2,7 +2,7 @@
 # @Date    : 2020-12-04
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.1
+# @Version : 0.2.2
 
 from importlib import reload
 import traceback
@@ -17,9 +17,9 @@ import script
 
 TessEnv = {
     # "TesseractBinPath": "D:/programs/Tesseract",
-    # "TessDataDir": "/home/brt/ws/tmv/src/plugins/tesseract/tessdata/demo",
-    "TessDataDir": "D:/Home/workspace/tmv/src/plugins/tesseract/tessdata/demo",
-    "Lang": "eng"
+    # "TessDataDir": "/home/brt/ws/ipynb/tutorial/tesseract/tessdata",
+    "TessDataDir": "D:/Home/workspace/ipynb/tutorial/tesseract/tessdata",
+    "Lang": "xlt"
 }
 
 class MainWnd(OcrEngineMixin, BaseCvWnd):

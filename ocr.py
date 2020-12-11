@@ -103,8 +103,8 @@ class Tesseract(OcrEngine):
         # 对于portable版本的Tesseract，需要在PyTessBaseAPI对象初始化时，指定path
         assert os.path.exists(dir_tessdata)
         self.api = PyTessBaseAPI(path=dir_tessdata, lang=lang)
+        # self.api.SetVariable("tessedit_char_blacklist", ",.<>|\\/+_[]-=")
         # self.api.SetVariable("tessedit_char_whitelist", "0123456789")
-        self.api.SetVariable("tessedit_char_blacklist", "abcdefghijklmn")
         # self.api.SetVariable("classify_bln_numeric_mode", "1")
         self.config = {}
 
@@ -118,7 +118,6 @@ class Tesseract(OcrEngine):
         self.isRunning = True
 
     def recognize(self):
-        # self.api.SetVariable("classify_bln_numeric_mode", "1")
         text = self.api.GetUTF8Text()
         text = text.strip()
         # text = text.strip("\n").strip()
@@ -185,7 +184,6 @@ class Tesseract(OcrEngine):
         # score = self.api.AllWordConfidences()
         res = self.recognize()
         return res
-
 
 #####################################################################
 
@@ -332,11 +330,13 @@ if __name__ == "__main__":
 
     from importlib import reload
     import traceback
+
     from pyqt.qtwx import *
     from pyqt.qtcv import BaseCvWnd
     from pycv.camera import Qt5Camera
     import pycv.opencv as cv
-    from Demo import script
+
+    import script
 
     CAMERA_RESOLUTION = [800,600]
 

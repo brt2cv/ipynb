@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-12-01
+# @Date    : 2020-12-11
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.5
+# @Version : 0.2.6
 
 import numpy as np
 import cv2
@@ -28,7 +28,11 @@ class CameraByOpenCV:
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
         # self.cap.set(cv2.CAP_PROP_FPS, 1)  # 测试无效
-        self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc('M','J','P','G'))
+        try:
+            self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc('M','J','P','G'))
+        except AttributeError:  # if cv2.__version__ <= "3.2.0"
+            self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M','J','P','G'))
+
         logger.info("[+] 摄像头像素设定为【{}x{}】".format(
                 self.cap.get(cv2.CAP_PROP_FRAME_WIDTH),
                 self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)

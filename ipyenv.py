@@ -1,3 +1,8 @@
+# @Author  : Bright Li (brt2@qq.com)
+# @Link    : https://gitee.com/brt2
+# @Date    : 2020-12-14
+# @Version : 0.2.3
+
 import os
 from importlib import reload
 # from utils.base import get_caller_path  # ipython中不适用
@@ -80,11 +85,17 @@ except ImportError:
 
 expy_pydev()
 
+import numpy as np
 import matplotlib.pyplot as plt
 def imshow(im, setHD=False):
+    if isinstance(im, np.ndarray):  # torch.Tensor
+        npimg = im
+    else:
+        npimg = np.transpose(im.numpy(), (1, 2, 0))
+
     if setHD:
         plt.figure(figsize=(20,20))
-    plt.imshow(im)
+    plt.imshow(npimg)
 
 #####################################################################
 

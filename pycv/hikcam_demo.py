@@ -5,10 +5,8 @@ import threading
 import os
 import termios
 
-from ctypes import *
-
 # sys.path.append("./MvImport")
-from MvCameraControl_class import *
+from HikVision.MvCameraControl_class import *
 
 g_bExit = False
 

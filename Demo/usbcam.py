@@ -5,13 +5,13 @@
 # @Version : 0.2.1
 
 import cv2
-from pycv.camera import CameraByOpenCV
+from pycv.camera import UsbCamera
 
 if __name__ == "__main__":
     import os
 
     def run_cv2(camera_num, isRGB, img_size, win_size=None):
-        camera = CameraByOpenCV(camera_num)
+        camera = UsbCamera(camera_num)
         camera.set_format(isRGB)
         camera.set_resolution(img_size if img_size else [640, 480])
         # camera.set_white_balance(True)

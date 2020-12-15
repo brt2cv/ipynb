@@ -63,4 +63,4 @@ class MainWnd(BaseCvWnd):
 
 
 # run_qtapp(SimpleOCR)
-run_qtapp(MainWnd, None, solution=[800,600])
+run_qtapp(MainWnd, None, -1, solution=[800,600])

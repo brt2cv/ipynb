@@ -1,20 +1,17 @@
 # -- coding: utf-8 --
 
-import sys
-import copy
-import ctypes
 import os
-
 from ctypes import *
-from CameraParams_const import *
-from CameraParams_header import *
-from MvCameraControl_header import *
-from MvErrorDefine_const import *
-from PixelType_const import *
-from PixelType_header import *
 
-MvCamCtrldll = ctypes.cdll.LoadLibrary(os.path.join(os.path.dirname(__file__),
-                                       "cdll/debian/libMvCameraControl.so"))
+from .CameraParams_const import *
+from .CameraParams_header import *
+from .MvCameraControl_header import *
+from .MvErrorDefine_const import *
+from .PixelType_const import *
+from .PixelType_header import *
+
+MvCamCtrldll = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__),
+                                "cdll/debian/libMvCameraControl.so"))
 
 # 用于回调函数传入相机实例
 class _MV_PY_OBJECT_(Structure):

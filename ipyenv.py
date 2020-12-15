@@ -91,7 +91,8 @@ def imshow(im, setHD=False):
     if isinstance(im, np.ndarray):  # torch.Tensor
         npimg = im
     else:
-        npimg = np.transpose(im.numpy(), (1, 2, 0))
+        # npimg = np.transpose(im.numpy(), (1, 2, 0))
+        npimg = im.permute((1, 2, 0))
 
     if setHD:
         plt.figure(figsize=(20,20))

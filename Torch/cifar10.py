@@ -28,15 +28,26 @@ testset = torchvision.datasets.CIFAR10(root='./data', train=False,
 testloader = torch.utils.data.DataLoader(testset, batch_size=4,
                                          shuffle=False, num_workers=2)
 
-classes = ('plane', 'car', 'bird', 'cat',
-           'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+# classes = ('plane', 'car', 'bird', 'cat',
+#            'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+classes = trainset.classes
 
 # %% get some random training images
+# 查看一张随机图像
 dataiter = iter(trainloader)
 images, labels = dataiter.next()
 
 im_sample = torchvision.utils.make_grid(images)
 uu.imshow(im_sample)
+
+# %% 查看全部图像
+# import matplotlib.pyplot as plt
+# for images, _ in trainloader:
+#     print('images.shape:', images.shape)
+#     plt.figure(figsize=(16,8))
+#     plt.axis('off')
+#     plt.imshow(torchvision.utils.make_grid(images, nrow=16).permute((1, 2, 0)))
+#     break
 
 # %% Define a Convolutional Neural Network
 import torch.nn as nn

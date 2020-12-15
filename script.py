@@ -12,22 +12,21 @@ class UtilFaker:
         """ 不显示图像 """
 uu = UtilFaker()
 
-def improc(im, *args):
+def improc_origin(im, *args):
+    return cv.resize(im, (800,600))
+
+def improc_right(im, *args):
     return cv.threshold(im, args[0])
 
-def improc_ocr(im, *args):
-    # ROI = [250, 200, 300, 100]
-    w, h = 300, 200
-    left, right_off = args[1], args[2]
-    if left and right_off:
-        ROI = [left, h, w+right_off, 60]
-        cv.draw_rect(im, *ROI, thickness=2)
-        im_roi = cv.crop(im, ROI)
-    else:
-        im_roi = im
+def improc_roi(im, *args):
+    im_h, im_w = im.shape[:2]
+    w, h = 352, 100
+    left, right = int(args[1]/255 * im_w), int(args[2]/255 * im_h)
+    ROI = [left, right, w, h]
+    cv.draw_rect(im, *ROI, thickness=2)
+    im_roi = cv.crop(im, ROI)
+
     # im_gau = cv.gaussian(im_roi, 3)
-    im_bin = cv.threshold(im_roi, args[0])
-    im_med = cv.median(im_bin, 3)
-    return im_med
-
-
+    # im_bin = cv.threshold(im_roi, args[0])
+    # im_med = cv.median(im_bin, 5)
+    return im_roi

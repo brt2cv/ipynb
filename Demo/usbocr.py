@@ -17,8 +17,8 @@ import script
 
 TessEnv = {
     # "TesseractBinPath": "D:/programs/Tesseract",
-    # "TessDataDir": "/home/brt/ws/ipynb/tutorial/tesseract/tessdata",
-    "TessDataDir": "D:/Home/workspace/ipynb/tutorial/tesseract/tessdata",
+    "TessDataDir": "/home/brt/ws/ipynb/Tutorial/tesseract/tessdata",
+    # "TessDataDir": "D:/Home/workspace/ipynb/Tutorial/tesseract/tessdata",
     "Lang": "eng"
 }
 
@@ -45,8 +45,9 @@ class MainWnd(OcrEngineMixin, BaseCvWnd):
     def define_improc(self):
         """ 由于关乎可变脚本script，故需要在子类重写 """
         self.improc_methods = {
-            "window2": script.improc_ocr,  # make_right
-            "parse_roi": script.improc_ocr,
+            "window1": script.improc_origin,
+            "window2": script.improc_roi,  # make_right
+            "parse_roi": script.improc_roi,
         }
 
     def ocr_result(self, result):
@@ -75,6 +76,8 @@ class MainWnd(OcrEngineMixin, BaseCvWnd):
                 im_text = func(im_left, *list_params)
                 self.ocr_exec(im_text)
 
+        im_left = self.improc_methods["window1"](im_left, *list_params)
+
         if self.isSwitched:
             im_left, im_right = im_right, im_left
 
@@ -84,6 +87,4 @@ class MainWnd(OcrEngineMixin, BaseCvWnd):
 
 
 # run_qtapp(SimpleOCR)
-run_qtapp(MainWnd, None, solution=[800,600])
-
-
+run_qtapp(MainWnd, None, camera_idx=-1, solution=[800,600])

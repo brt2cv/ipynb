@@ -7,7 +7,7 @@ import termios
 
 from ctypes import *
 
-sys.path.append("../MvImport")
+# sys.path.append("./MvImport")
 from MvCameraControl_class import *
 
 g_bExit = False

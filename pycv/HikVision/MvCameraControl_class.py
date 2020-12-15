@@ -13,7 +13,8 @@ from MvErrorDefine_const import *
 from PixelType_const import *
 from PixelType_header import *
 
-MvCamCtrldll = ctypes.cdll.LoadLibrary(os.getenv('MVCAM_COMMON_RUNENV') + "/64/libMvCameraControl.so")
+MvCamCtrldll = ctypes.cdll.LoadLibrary(os.path.join(os.path.dirname(__file__),
+                                       "cdll/debian/libMvCameraControl.so"))
 
 # 用于回调函数传入相机实例
 class _MV_PY_OBJECT_(Structure):
@@ -29,7 +30,7 @@ class MvCamera():
         self._handle = c_void_p()  # 记录当前连接设备的句柄
         self.handle = pointer(self._handle)  # 创建句柄指针
 
-    
+
     @staticmethod
     def MV_CC_GetSDKVersion():
         MvCamCtrldll.MV_CC_GetSDKVersion.restype = c_uint
@@ -124,7 +125,7 @@ class MvCamera():
         MvCamCtrldll.MV_CC_GetIntValue.restype = c_uint
         # C原型:int MV_CC_GetIntValue(void* handle,char* strKey,MVCC_INTVALUE *pIntValue)
         return MvCamCtrldll.MV_CC_GetIntValue(self.handle, strKey.encode('ascii'), byref(stIntValue))
-    
+
     # 设置Integer型属性值
     def MV_CC_SetIntValue(self, strKey, nValue):
         MvCamCtrldll.MV_CC_SetIntValue.argtype = (c_void_p, c_void_p, c_uint32)
@@ -187,14 +188,14 @@ class MvCamera():
         MvCamCtrldll.MV_CC_GetStringValue.restype = c_uint
         # C原型:int MV_CC_GetStringValue(void* handle,char* strKey,MVCC_STRINGVALUE *pStringValue)
         return MvCamCtrldll.MV_CC_GetStringValue(self.handle, strKey.encode('ascii'), byref(StringValue))
-    
+
     # 设置String型属性值
     def MV_CC_SetStringValue(self, strKey, sValue):
         MvCamCtrldll.MV_CC_SetStringValue.argtype = (c_void_p, c_void_p, c_void_p)
         MvCamCtrldll.MV_CC_SetStringValue.restype = c_uint
         # C原型:int MV_CC_SetStringValue(void* handle,char* strKey,char * sValue)
         return MvCamCtrldll.MV_CC_SetStringValue(self.handle, strKey.encode('ascii'), sValue.encode('ascii'))
-    
+
     # 设置Command型属性值
     def MV_CC_SetCommandValue(self, strKey):
         MvCamCtrldll.MV_CC_SetCommandValue.argtype = (c_void_p, c_void_p)
@@ -222,7 +223,7 @@ class MvCamera():
         MvCamCtrldll.MV_GIGE_ForceIpEx.restype = c_uint
         # C原型:int MV_GIGE_ForceIpEx(void* handle, unsigned int nIP, unsigned int nSubNetMask, unsigned int nDefaultGateWay)
         return MvCamCtrldll.MV_GIGE_ForceIpEx(self.handle, c_uint(nIP), c_uint(nSubNetMask), c_uint(nDefaultGateWay))
-    
+
     # 配置IP方式
     def MV_GIGE_SetIpConfig(self, nType):
         MvCamCtrldll.MV_GIGE_SetIpConfig.argtype = (c_void_p, c_uint)
@@ -257,7 +258,7 @@ class MvCamera():
         MvCamCtrldll.MV_CC_FeatureSave.restype = c_uint
         # C原型:int MV_CC_FeatureSave(void* handle, char* pFileName)
         return MvCamCtrldll.MV_CC_FeatureSave(self.handle, pFileName.encode('ascii'))
-    
+
     # 加载属性节点
     def MV_CC_FeatureLoad(self, pFileName):
         MvCamCtrldll.MV_CC_FeatureLoad.argtype = (c_void_p, c_void_p)
@@ -293,4 +294,4 @@ class MvCamera():
         # C原型:int __stdcall MV_CC_GetOptimalPacketSize(void* handle);
         return MvCamCtrldll.MV_CC_GetOptimalPacketSize(self.handle)
 
-    
+

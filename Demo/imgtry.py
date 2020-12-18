@@ -28,18 +28,12 @@ class MainWnd(BaseCvWnd):
         self.define_improc()
         self.status_bar.showMessage("预处理脚本已更新")
 
-
     def define_improc(self):
         """ 由于关乎可变脚本script，故需要在子类重写 """
         self.improc_methods = {
             "window1": script.improc_origin,
             "window2": script.improc_roi,  # make_right
         }
-
-    def ocr_result(self, result):
-        # logger.debug(">>> OCR: {}".format(result))
-        msg = f'OCR识别结果: {result}' if result else self.statusbar_msg
-        self.status_bar.showMessage(msg)
 
     def update_frame(self, im_arr):
         if self.isPaused:

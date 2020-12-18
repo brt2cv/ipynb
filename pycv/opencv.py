@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-12-08
+# @Date    : 2020-12-17
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.9
+# @Version : 0.2.10
 
 import os
 import platform
@@ -354,6 +354,18 @@ def rotate(im, angle):
     # cols-1 and rows-1 are the coordinate limits.
     M = cv2.getRotationMatrix2D(((rows-1)/2, (cols-1)/2), angle, 1)
     return cv2.warpAffine(im, M, (rows, cols))
+
+def perspect_transform(im, src_pnts, dst_pnts, new_size):
+    M = cv2.getPerspectiveTransform(src_pnts, dst_pnts)
+    return cv2.warpPerspective(im, M, new_size)
+
+def perspect2rect(im, src_pnts, new_size=None):
+    if new_size is None:
+        h, w = im.shape[:2]
+        new_size = (w,h)
+    w, h = new_size
+    return perspect_transform(im, np.float32(src_pnts),
+           np.float32([(0,0), (w,0), (w,h), (0,h)]), new_size)
 
 def crop(im, roi):
     """ roi: (x, y, w, h) """
@@ -789,7 +801,7 @@ def approx_polygon(cnt, epsilon=0):  # 多边形拟合
     if epsilon <= 0:
         epsilon = 0.1 * cnt_perimeter(cnt)
     polygon = cv2.approxPolyDP(cnt, epsilon, True)
-    return polygon
+    return polygon[:,0]
 
 def isConvex(cnt):  # 检测轮廓的凸性
     isConvex = cv2.isContourConvex(cnt)
@@ -877,9 +889,9 @@ class Blob(Shape):
     def __init__(self, cnt):
         self._cnt = cnt
         # return: [[中心坐标]、[宽度, 高度]、[旋转角度]]，其中，角度是度数形式，不是弧度数
-        pos, size, self.rotation_deg = cv2.minAreaRect(cnt)
+        pos, self.size, self.rotation_deg = cv2.minAreaRect(cnt)
         self._cx, self._cy = pos
-        w, h = size
+        w, h = self.size
         if w < h:
             w, h = h, w
         self.elongation_ratio = h / w  # range: [0,1]

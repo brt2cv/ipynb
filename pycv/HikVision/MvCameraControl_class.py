@@ -10,8 +10,7 @@ from .MvErrorDefine_const import *
 from .PixelType_const import *
 from .PixelType_header import *
 
-MvCamCtrldll = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__),
-                                "cdll/debian/libMvCameraControl.so"))
+MvCamCtrldll = cdll.LoadLibrary(os.getenv('MVCAM_COMMON_RUNENV') + "/64/libMvCameraControl.so")
 
 # 用于回调函数传入相机实例
 class _MV_PY_OBJECT_(Structure):

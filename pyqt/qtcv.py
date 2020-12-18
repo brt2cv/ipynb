@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-12-04
+# @Date    : 2020-12-16
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.2
+# @Version : 0.2.3
 
 import numpy as np
 
@@ -127,7 +127,7 @@ class BaseCvWnd(QWidget):
         super().__init__(parent)
 
         self.isPaused = False
-        self.isSwitched = True
+        self.isSwitched = False
 
         if solution is None:
             solution = [640,480]

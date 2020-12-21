@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-12-04
+# @Date    : 2020-12-15
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.4
+# @Version : 0.2.5
 
 from pyqt.qtwx import *
 from pycv.camera import Qt5Camera
@@ -14,7 +14,9 @@ class MainWnd(QWidget):
         super().__init__(parent)
         loadUi("ui/wx_mwnd.ui", self)
 
-        self.camera = Qt5Camera(0, [800, 600], isRGB=0)
+        self.camera = Qt5Camera()
+        self.camera.conn_uvc(0)
+
         self._setup_ui()
         self.camera.dataUpdated.connect(self.update_frame)
         self.camera.start()

@@ -5,13 +5,13 @@
 # @Version : 0.2.1
 
 import cv2
-from pycv.camera import CameraByOpenCV
+from pycv.camera import UsbCamera
 
 if __name__ == "__main__":
     import os
 
     def run_cv2(camera_num, isRGB, img_size, win_size=None):
-        camera = CameraByOpenCV(camera_num)
+        camera = UsbCamera(camera_num)
         camera.set_format(isRGB)
         camera.set_resolution(img_size if img_size else [640, 480])
         # camera.set_white_balance(True)
@@ -52,8 +52,9 @@ if __name__ == "__main__":
     args = getopt()
 
     img_size = [int(i) for i in args.camera_resolution.split("x")]
+    print(">>>", img_size)
     if args.window_resolution:
-        win_size = [int(i) for i in args.window_resolution.split("x")]
+        win_size = tuple([int(i) for i in args.window_resolution.split("x")])
         print(">>> 显示窗口尺寸缩放: {}".format(win_size))
     else:
         win_size = None

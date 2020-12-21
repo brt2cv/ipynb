@@ -17,8 +17,8 @@ import script
 
 TessEnv = {
     # "TesseractBinPath": "D:/programs/Tesseract",
-    # "TessDataDir": "/home/brt/ws/ipynb/tutorial/tesseract/tessdata",
-    "TessDataDir": "D:/Home/workspace/ipynb/tutorial/tesseract/tessdata",
+    "TessDataDir": "/home/brt/ws/ipynb/Tutorial/tesseract/tessdata",
+    # "TessDataDir": "D:/Home/workspace/ipynb/Tutorial/tesseract/tessdata",
     "Lang": "eng"
 }
 
@@ -32,26 +32,33 @@ class MainWnd(OcrEngineMixin, BaseCvWnd):
 
         self.setWindowTitle("OCR字符识别")
         # self.set_roi([250, 200, 300, 100])
-        self.ROI = True
 
         self.ocr_init(TessEnv["TessDataDir"], TessEnv["Lang"])
 
     def update_script(self):
         """ 由于关乎可变脚本script，故需要在子类重写 """
         reload(script)
-        self.status_bar.showMessage("预处理脚本已更新")
         self.define_improc()
+        self.status_bar.showMessage("预处理脚本已更新")
 
     def define_improc(self):
         """ 由于关乎可变脚本script，故需要在子类重写 """
         self.improc_methods = {
-            "window2": script.improc_ocr,  # make_right
-            "parse_roi": script.improc_ocr,
+            "window1": script.improc_origin,
+            "window2": script.improc_roi,  # make_right
+            "parse_ocr": script.improc_roi,
         }
 
     def ocr_result(self, result):
         # logger.debug(">>> OCR: {}".format(result))
-        msg = f'OCR识别结果: {result}' if result else self.statusbar_msg
+        list_text = result.split("\n", 1)
+        if not list_text:
+            return
+        text = list_text[0]
+        if len(text) != 13:
+            print(">>", text.encode())
+            return
+        msg = f'OCR识别结果: {text}' if text else self.statusbar_msg
         self.status_bar.showMessage(msg)
 
     def update_frame(self, im_arr):
@@ -68,12 +75,13 @@ class MainWnd(OcrEngineMixin, BaseCvWnd):
             traceback.print_exc()
             im_right = im_left
 
-        # 绘制ROI区域
-        if self.ROI:
-            func = self.improc_methods.get("parse_roi")
-            if func:
-                im_text = func(im_left, *list_params)
-                self.ocr_exec(im_text)
+        # OCR数据处理
+        func = self.improc_methods.get("parse_ocr")
+        if func:
+            im_text = func(im_left, *list_params)
+            self.ocr_exec(im_text)
+
+        im_left = self.improc_methods["window1"](im_left, *list_params)
 
         if self.isSwitched:
             im_left, im_right = im_right, im_left
@@ -84,6 +92,4 @@ class MainWnd(OcrEngineMixin, BaseCvWnd):
 
 
 # run_qtapp(SimpleOCR)
-run_qtapp(MainWnd, None, solution=[800,600])
-
-
+run_qtapp(MainWnd, None, camera_idx=-1, solution=[800,600])

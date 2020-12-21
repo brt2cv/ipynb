@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-12-08
+# @Date    : 2020-12-18
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.9
+# @Version : 0.2.11
 
 import os
 import platform
@@ -79,6 +79,19 @@ from cv2 import imwrite
 def imsave(im_arr, path_save):
     """ 注意：参数顺序不同于cv2.imwrite(path_save, im_arr) """
     return cv2.imwrite(path_save, im_arr)
+
+def size(im):
+    h, w = im.shape[:2]
+    return (w, h)
+
+def new(shape, value=0, dtype="uint8"):
+    if value == 0:
+        return np.zeros(shape, dtype)
+    else:
+        return np.ones(shape, dtype) * valued
+
+def project(im_bin, axis):
+    return np.any(im_bin, axis)
 
 def shape2size(shape):
     """ im_arr.shape: {h, w, c}
@@ -332,6 +345,8 @@ def yuv2rgb(im):
 # Image Transfrom
 #####################################################################
 
+from cv2 import flip
+
 resize = lambda im, size: cv2.resize(im, dsize=size)
 
 def rescale(im, scale):
@@ -355,6 +370,18 @@ def rotate(im, angle):
     M = cv2.getRotationMatrix2D(((rows-1)/2, (cols-1)/2), angle, 1)
     return cv2.warpAffine(im, M, (rows, cols))
 
+def perspect_transform(im, src_pnts, dst_pnts, new_size):
+    M = cv2.getPerspectiveTransform(src_pnts, dst_pnts)
+    return cv2.warpPerspective(im, M, new_size)
+
+def perspect2rect(im, src_pnts, new_size=None):
+    if new_size is None:
+        h, w = im.shape[:2]
+        new_size = (w,h)
+    w, h = new_size
+    return perspect_transform(im, np.float32(src_pnts),
+           np.float32([(0,0), (w,0), (w,h), (0,h)]), new_size)
+
 def crop(im, roi):
     """ roi: (x, y, w, h) """
     x, y, w, h = roi
@@ -364,6 +391,22 @@ def crop2(im, top_left, bottom_right):
     x, y = top_left
     x2, y2 = bottom_right
     return crop(im, (x, y, x2-x, y2-y))
+
+def crop_margins(im, roi, margins):
+    """ margins:
+        + int: >0则为同尺寸拓展，<0则为同尺寸缩小
+        + list: 左上右下的4个数值，如[-2,-2,3,3], 则分别向4个方向拓展
+    """
+    # assert len(margins) == 4, "Param【margins】需要4元素数组"
+    try:
+        m_left, m_top, m_right, m_bottom = margins
+    except TypeError:
+    # if isinstance(margins, int):
+        m_left = m_top = 0 - margins
+        m_right = m_bottom = margins
+
+    x, y, w, h = roi
+    return crop(im, (x+m_left, y+m_top, w-m_left+m_right, h-m_top+m_bottom))
 
 # https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#gacea54f142e81b6758cb6f375ce782c8d
 def sobel(im, dx=1, dy=1, ksize=3):
@@ -689,9 +732,10 @@ def match_template(im, template, threshold):
 def find_template(im, template):
     """ 获取最优匹配度的信息 """
     result = cv2.matchTemplate(im, template, cv2.TM_CCOEFF_NORMED)
-    pos = np.unravel_index(np.argmax(result), result.shape)  # 相似度最高的顶点位置
-    similarity = result[pos[0]][pos[1]]
-    return pos, similarity
+    pos = np.unravel_index(np.argmax(result), result.shape)  # 相似度最高的顶点位置 (h, w)
+    h, w = pos
+    similarity = result[h][w]
+    return [w,h], similarity
 
 def find_cnts(im, mode=0, method=1):
     """
@@ -789,7 +833,7 @@ def approx_polygon(cnt, epsilon=0):  # 多边形拟合
     if epsilon <= 0:
         epsilon = 0.1 * cnt_perimeter(cnt)
     polygon = cv2.approxPolyDP(cnt, epsilon, True)
-    return polygon
+    return polygon[:,0]
 
 def isConvex(cnt):  # 检测轮廓的凸性
     isConvex = cv2.isContourConvex(cnt)
@@ -877,9 +921,9 @@ class Blob(Shape):
     def __init__(self, cnt):
         self._cnt = cnt
         # return: [[中心坐标]、[宽度, 高度]、[旋转角度]]，其中，角度是度数形式，不是弧度数
-        pos, size, self.rotation_deg = cv2.minAreaRect(cnt)
+        pos, self.size, self.rotation_deg = cv2.minAreaRect(cnt)
         self._cx, self._cy = pos
-        w, h = size
+        w, h = self.size
         if w < h:
             w, h = h, w
         self.elongation_ratio = h / w  # range: [0,1]

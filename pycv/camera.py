@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-12-11
+# @Date    : 2020-12-15
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.6
+# @Version : 0.3.1
 
 import numpy as np
 import cv2
@@ -16,8 +16,29 @@ except ImportError:
     print("[!] {}: 调用系统logging模块".format(__file__))
     logger = getLogger(__file__)
 
+try:
+    from pycv.HikVision.MvCameraControl_class import *
+    import threading
+    ENABLE_MODULE_HIKVISION = True
+except ImportError:
+    ENABLE_MODULE_HIKVISION = False
 
-class CameraByOpenCV:
+
+class ICamera:
+    def __init__(self, ip):
+        """ 设置相机序号或GigE的IP地址 """
+    def set_resolution(self, resolution):
+        """ 设置分辨率 """
+    def set_format(self, isRGB):
+        """ 设置色彩模式 """
+    def set_exposure(self, value=None):
+        """ 设置曝光参数 """
+    def set_white_balance(self, value=None):
+        """ 设置白平衡 """
+    def take_snapshot(self):
+        """ 抓取图像 """
+
+class UsbCamera(ICamera):
     def __init__(self, n):
         self.cap = cv2.VideoCapture(n)
         assert self.cap.isOpened()
@@ -64,6 +85,105 @@ class CameraByOpenCV:
         # pil_img = Image.fromarray(im_frame, "L")
         return im_frame
 
+class HikCamera(ICamera):
+    def __init__(self, n=None):
+        assert ENABLE_MODULE_HIKVISION
+
+        SDKVersion = MvCamera.MV_CC_GetSDKVersion()
+        print ("SDKVersion[0x%x]" % SDKVersion)
+
+        deviceList = MV_CC_DEVICE_INFO_LIST()
+        tlayerType = MV_GIGE_DEVICE | MV_USB_DEVICE
+
+        # ch:枚举设备 | en:Enum device
+        ret = MvCamera.MV_CC_EnumDevices(tlayerType, deviceList)
+        assert ret == 0, "enum devices fail! ret[0x%x]" % ret
+        assert deviceList.nDeviceNum > 0, "find no device!"
+        print ("Find %d devices!" % deviceList.nDeviceNum)
+
+        if n is None:
+            assert deviceList.nDeviceNum == 1, "[!] Camera index error!"
+            n = 0
+        else:
+            assert n < deviceList.nDeviceNum, "[!] Camera index error!"
+
+        # ch:创建相机实例 | en:Creat Camera Object
+        cam = MvCamera()
+        # ch:选择设备并创建句柄| en:Select device and create handle
+        stDeviceList = cast(deviceList.pDeviceInfo[n], POINTER(MV_CC_DEVICE_INFO)).contents
+
+        ret = cam.MV_CC_CreateHandle(stDeviceList)
+        assert ret == 0, "create handle fail! ret[0x%x]" % ret
+
+        # ch:打开设备 | en:Open device
+        ret = cam.MV_CC_OpenDevice(MV_ACCESS_Exclusive, 0)
+        assert ret == 0, "open device fail! ret[0x%x]" % ret
+
+        # ch:探测网络最佳包大小(只对GigE相机有效) | en:Detection network optimal package size(It only works for the GigE camera)
+        if stDeviceList.nTLayerType == MV_GIGE_DEVICE:
+            nPacketSize = cam.MV_CC_GetOptimalPacketSize()
+            if int(nPacketSize) > 0:
+                ret = cam.MV_CC_SetIntValue("GevSCPSPacketSize",nPacketSize)
+                assert ret == 0, "Warning: Set Packet Size fail! ret[0x%x]" % ret
+            else:
+                print ("Warning: Get Packet Size fail! ret[0x%x]" % nPacketSize)
+
+        # ch:设置触发模式为off | en:Set trigger mode as off
+        ret = cam.MV_CC_SetEnumValue("TriggerMode", MV_TRIGGER_MODE_OFF)
+        assert ret == 0, "set trigger mode fail! ret[0x%x]" % ret
+
+        # ch:获取数据包大小 | en:Get payload size
+        stParam =  MVCC_INTVALUE()
+        memset(byref(stParam), 0, sizeof(MVCC_INTVALUE))
+
+        ret = cam.MV_CC_GetIntValue("PayloadSize", stParam)
+        assert ret == 0, "get payload size fail! ret[0x%x]" % ret
+        nPayloadSize = stParam.nCurValue
+
+        self.cap = cam
+        self._stFrameInfo = MV_FRAME_OUT_INFO_EX()
+        memset(byref(self._stFrameInfo), 0, sizeof(self._stFrameInfo))
+
+        # ch:开始取流 | en:Start grab image
+        ret = cam.MV_CC_StartGrabbing()
+        assert ret == 0, "start grabbing fail! ret[0x%x]" % ret
+        self.data_buf = (c_ubyte * nPayloadSize)()
+        self.nDataSize = nPayloadSize
+
+    def __del__(self):
+        # ch:停止取流 | en:Stop grab image
+        ret = self.cap.MV_CC_StopGrabbing()
+        if ret != 0:
+            del self.data_buf
+            raise Exception ("stop grabbing fail! ret[0x%x]" % ret)
+
+        # ch:关闭设备 | Close device
+        ret = self.cap.MV_CC_CloseDevice()
+        if ret != 0:
+            del self.data_buf
+            raise Exception("close deivce fail! ret[0x%x]" % ret)
+
+        # ch:销毁句柄 | Destroy handle
+        ret = self.cap.MV_CC_DestroyHandle()
+        if ret != 0:
+            del self.data_buf
+            raise Exception("destroy handle fail! ret[0x%x]" % ret)
+        del self.data_buf
+
+    def take_snapshot(self):
+        pData = byref(self.data_buf)
+        ret = self.cap.MV_CC_GetOneFrameTimeout(pData, self.nDataSize, self._stFrameInfo, 1000)
+        if ret == 0:
+            # print ("get one frame: Width[%d], Height[%d], PixelType[0x%x], nFrameNum[%d]".format(
+            #         self._stFrameInfo.nWidth, self._stFrameInfo.nHeight,
+            #         self._stFrameInfo.enPixelType, self._stFrameInfo.nFrameNum))
+            ndarray = np.asarray(pData._obj)
+            return ndarray.reshape((self._stFrameInfo.nHeight, self._stFrameInfo.nWidth))  # 灰度图
+            # ndarray = ndarray.reshape((self._stFrameInfo.nHeight, self._stFrameInfo.nWidth, 3))  # RGB
+            # ndarray = cv2.cvtColor(ndarray , cv2.COLOR_RGB2BGR)
+        else:
+            print ("no data[0x%x]" % ret)
+
 #####################################################################
 
 from threading import Thread, Event
@@ -73,7 +193,7 @@ class Qt5Camera(QObject, Thread):
     dataUpdated = pyqtSignal(np.ndarray)  # PIL.Image.Image
     readError = pyqtSignal()
 
-    def __init__(self, n, resolution=None, isRGB=True):
+    def __init__(self):
         QObject.__init__(self)
         Thread.__init__(self)
 
@@ -81,9 +201,13 @@ class Qt5Camera(QObject, Thread):
         self.isRunning.set()
         self.isPause = Event()
 
-        self.camera = CameraByOpenCV(n)
+    def conn_uvc(self, n, resolution=None, isRGB=False):
+        self.camera = UsbCamera(n)
         self.camera.set_format(isRGB)
         self.camera.set_resolution(resolution if resolution else [640, 480])
+
+    def conn_hik(self, n_or_ip=None):
+        self.camera = HikCamera(n_or_ip)
 
     listen = Thread.start
 
@@ -103,12 +227,16 @@ class Qt5Camera(QObject, Thread):
                 return
             try:
                 im_frame = self.camera.take_snapshot()
+                if im_frame is None:
+                    print("[-] Capture Nothing")
+                    time.sleep(1)
+                    continue
+                self.dataUpdated.emit(im_frame)
             except Exception as e:
                 logger.error(e)
                 self.isRunning.clear()
                 self.readError.emit()
-            else:
-                self.dataUpdated.emit(im_frame)
+import time
 
 #####################################################################
 
@@ -116,7 +244,7 @@ if __name__ == "__main__":
     import os
 
     def run_cv2(camera_num, isRGB, img_size, win_size=None):
-        camera = CameraByOpenCV(camera_num)
+        camera = UsbCamera(camera_num)
         camera.set_format(isRGB)
         camera.set_resolution(img_size if img_size else [640, 480])
         # camera.set_white_balance(True)

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-12-08
+# @Date    : 2020-12-18
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.6
+# @Version : 0.2.7
 
 try:
     from utils.log import getLogger
@@ -187,8 +187,13 @@ class Tesseract(OcrEngine):
 
 #####################################################################
 
-from threading import Thread, Event
-from PyQt5.QtCore import pyqtSignal, QObject
+try:
+    from threading import Thread, Event
+    from PyQt5.QtCore import pyqtSignal, QObject
+    HasImportPyQt5 = True
+except ImportError:
+    HasImportPyQt5 = False
+    QObject = object
 
 # class KeepThreadingMixin(Thread):
 #     def __init__(self):
@@ -224,6 +229,8 @@ class TesseractThread(QObject, Thread, OcrEngine):
     buff_size = 3
 
     def __init__(self, dir_tessdata, lang):
+        assert HasImportPyQt5
+
         QObject.__init__(self)
         OcrEngine.__init__(self)
         Thread.__init__(self, daemon=True)

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-12-04
+# @Date    : 2020-12-16
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.2
+# @Version : 0.2.3
 
 import numpy as np
 
@@ -127,11 +127,16 @@ class BaseCvWnd(QWidget):
         super().__init__(parent)
 
         self.isPaused = False
-        self.isSwitched = True
+        self.isSwitched = False
 
         if solution is None:
             solution = [640,480]
-        self.camera = Qt5Camera(camera_idx, solution, isRGB)
+        self.camera = Qt5Camera()
+        if camera_idx < 0:
+            self.camera.conn_hik(None)
+        else:
+            self.camera.conn_uvc(camera_idx, solution, isRGB)
+
         # self._setup_ui()
         self.define_improc()
         self.camera.dataUpdated.connect(self.update_frame)

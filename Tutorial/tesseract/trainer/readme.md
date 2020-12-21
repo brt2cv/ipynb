@@ -17,31 +17,66 @@
 ## 训练集流程
 1. 使用draw_ocr_tpl.py生成字符样本(jpg图片即可)
 1. 使用jTessBoxEditor工具 > Tools > Merge TIFF，输出文件名：num.font.exp0.tif
-合并后的文件命名格式有一定要求 
-【语法】：[lang].[fontname].exp[num].tif 
-1. cmd 执行（生成文件num.font.exp0.box）：
-tesseract num.font.exp0.tif num.font.exp0 -l eng --psm 7 batch.nochop makebox
+合并后的文件命名格式有一定要求
+
+    ```
+    【语法】：[lang].[fontname].exp[num].tif
+    ```
+
+1. cmd 执行（生成文件num.font.exp0.box）
+
+    ```
+    tesseract num.font.exp0.tif num.font.exp0 -l eng --psm 7 batch.nochop makebox
+    ```
 
 1. 将上一步生成的.box和.tif样本文件放在同一目录，运行jTessBoxEditor > Box Editor > open > num.font.exp0.tif ，校正文件识别的错误，保存！
 1. 执行如下命令： echo "test 0 0 0 0 0" > font_properties
 表示字体test的粗体、倾斜等共计5个属性。
 1. 生成.tr训练文件（生成num.font.exp0.tr文件）
-执行如下命令： tesseract num.font.exp0.tif num.font.exp0 nobatch box.train
+
+    ```
+    tesseract num.font.exp0.tif num.font.exp0 nobatch box.train
+    ```
+
 1. 生成字符集文件（生成一个名为“unicharset”的文件）
-执行命令： unicharset_extractor num.font.exp0.box
--->> 无法执行unicharset_extractor
+
+    ```
+    unicharset_extractor num.font.exp0.box
+    ```
+
+    额，貌似无法执行unicharset_extractor。。。
+
 1. 生成shape文件（生成 shapetable 和 num.unicharset 两个文件）
-shapeclustering -F font_properties -U unicharset -O num.unicharset num.font.exp0.tr
+
+    ```
+    shapeclustering -F font_properties -U unicharset -O num.unicharset num.font.exp0.tr
+    ```
+
 1. 生成聚字符特征文件（生成 inttemp、pffmtable、shapetable和zwp.unicharset四个文件）
-mftraining -F font_properties -U unicharset -O num.unicharset num.font.exp0.tr
+
+    ```
+    mftraining -F font_properties -U unicharset -O num.unicharset num.font.exp0.tr
+    ```
+
 1. 生成字符正常化特征文件（生成 normproto 文件）
-cntraining num.font.exp0.tr
+
+    ```
+    cntraining num.font.exp0.tr
+    ```
+
 1. 文件重命名
-mv normproto num.normproto
-mv inttemp num.inttemp
-mv pffmtable num.pffmtable
-mv shapetable num.shapetable
+
+    ```
+    mv normproto num.normproto
+    mv inttemp num.inttemp
+    mv pffmtable num.pffmtable
+    mv shapetable num.shapetable
+    ```
 
 1. 合并训练文件（生成 num.traineddata 文件）
-combine_tessdata num.
--->> Log输出中的Offset 1、3、4、5、13这些项不是-1，表示新的语言包生成成功。
+
+    ```
+    combine_tessdata num.
+    ```
+
+    -->> Log输出中的Offset 1、3、4、5、13这些项不是-1，表示新的语言包生成成功。

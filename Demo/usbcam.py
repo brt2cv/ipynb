@@ -10,10 +10,11 @@ from pycv.camera import UsbCamera
 if __name__ == "__main__":
     import os
 
-    def run_cv2(camera_num, isRGB, img_size, win_size=None):
+    def run_cv2(camera_num, isRGB, img_size, win_size=None, fps=0, func_call=None):
         camera = UsbCamera(camera_num)
         camera.set_format(isRGB)
         camera.set_resolution(img_size if img_size else [640, 480])
+        # camera.set_fps(fps, precise_fps=True)
         # camera.set_white_balance(True)
         # camera.set_exposure(-9)
 
@@ -25,7 +26,8 @@ if __name__ == "__main__":
             else:
                 im_win = im
 
-            key = cv2.waitKey(1) & 0xFF
+            wait_time = 1000//fps if fps > 0 else 1
+            key = cv2.waitKey(wait_time) & 0xFF
             if key == 113:  # ord('q')
                 break
             elif key in [32, 115]:  # space or ord("s")
@@ -37,6 +39,11 @@ if __name__ == "__main__":
                         print("[+] 已存储图像至:", path_save)
                         break
             cv2.imshow("OCC: OpenCV_Camera_Capture.py", im_win)
+            if func_call:
+                func_call(im)
+
+    def img_proc(im):
+        """ 图像处理程序 """
 
     def getopt():
         import argparse
@@ -45,6 +52,7 @@ if __name__ == "__main__":
         parser.add_argument("-c", "--color_RGB", action="store_true", help="使用彩色相机并通过RGB输出")
         parser.add_argument("-r", "--camera_resolution", action="store", default="640x480", help="相机分辨率设置，格式: 640x480")
         parser.add_argument("-R", "--window_resolution", action="store", help="窗口显示分辨率设置，格式: 800x600")
+        parser.add_argument("-f", "--fps", action="store", type=int, default=0, help="设置帧率")
         parser.add_argument("-C", "--console", action="store", help="终端运行，需要配合target_ip使用")
         parser.add_argument("-t", "--target_ip", action="store", help="目标IP地址及端口号，格式: 192.168.0.1:8889")
         return parser.parse_args()
@@ -62,5 +70,5 @@ if __name__ == "__main__":
 
     if args.console or args.target_ip:
         raise NotImplementedError()
-    # cam.take_snapshot(to_gray=(not args.color_RGB))
-    run_cv2(args.camera_num, args.color_RGB, img_size, win_size)
+    run_cv2(args.camera_num, args.color_RGB, img_size, win_size,
+            args.fps, func_call=img_proc)

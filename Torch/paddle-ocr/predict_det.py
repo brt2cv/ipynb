@@ -11,24 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import os
-import sys
-
-__dir__ = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(__dir__)
-sys.path.append(os.path.abspath(os.path.join(__dir__, '../..')))
-
-os.environ["FLAGS_allocator_strategy"] = 'auto_growth'
-
 import cv2
 import numpy as np
 import time
-import sys
+from logging import getLogger as get_logger
 
-import utility as utility
-from ppocr.utils.logging import get_logger
-from ppocr.utils.utility import get_image_file_list, check_and_read_gif
-from ppocr.data import create_operators, transform
+import utility
+
+from ppocr.data import transform, create_operators
 from ppocr.postprocess import build_post_process
 
 logger = get_logger()
@@ -90,7 +82,7 @@ class TextDetector(object):
                 postprocess_params["shrink_ratio_of_width"] = 0.3
         else:
             logger.info("unknown det_algorithm:{}".format(self.det_algorithm))
-            sys.exit(0)
+            return
 
         self.preprocess_op = create_operators(pre_process_list)
         self.postprocess_op = build_post_process(postprocess_params)

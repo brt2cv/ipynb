@@ -20,7 +20,7 @@ import numpy as np
 import json
 from PIL import Image, ImageDraw, ImageFont
 import math
-import onnxruntime  as ort
+import onnxruntime
 
 
 def parse_args():
@@ -36,7 +36,7 @@ def parse_args():
     parser.add_argument("--gpu_mem", type=int, default=500)
 
     # params for text detector
-    parser.add_argument("--image_dir", type=str)
+    parser.add_argument("--image_path", type=str)
     parser.add_argument("--det_algorithm", type=str, default='DB')
     parser.add_argument("--det_model_dir", type=str)
     parser.add_argument("--det_limit_side_len", type=float, default=960)
@@ -67,7 +67,7 @@ def parse_args():
     parser.add_argument(
         "--rec_char_dict_path",
         type=str,
-        default="./ppocr/utils/ppocr_keys_v1.txt")
+        default="./ppocr/ppocr_keys_v1.txt")
     parser.add_argument("--use_space_char", type=str2bool, default=True)
     parser.add_argument(
         "--vis_font_path", type=str, default="./doc/simfang.ttf")
@@ -104,7 +104,7 @@ def create_predictor(args, mode, logger):
         logger.info("not find model file path {}".format(model_file_path))
         sys.exit(0)
 
-    sess = ort.InferenceSession(model_file_path)
+    sess = onnxruntime.InferenceSession(model_file_path)
 
     return sess, sess.get_inputs()[0], None
 

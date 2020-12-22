@@ -11,14 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
-import sys
-
-__dir__ = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(__dir__)
-sys.path.append(os.path.abspath(os.path.join(__dir__, '../..')))
-
-os.environ["FLAGS_allocator_strategy"] = 'auto_growth'
 
 import cv2
 import copy
@@ -26,11 +18,10 @@ import numpy as np
 import math
 import time
 import traceback
+from logging import getLogger as get_logger
 
 import utility
 from ppocr.postprocess import build_post_process
-from ppocr.utils.logging import get_logger
-from ppocr.utils.utility import get_image_file_list, check_and_read_gif
 
 logger = get_logger()
 

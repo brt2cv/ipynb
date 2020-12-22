@@ -11,12 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""
+Usage:
+python3 predict_system.py --image_path=/home/brt/workspace/ipynb/Tutorial/OCR/images/nature-en3.jpg \
+    --det_model_dir="./onnx/det_db/model.onnx" \
+    --cls_model_dir="./onnx/cls/model.onnx" \
+    --rec_model_dir="./onnx/rec_crnn/model.onnx" \
+    --use_angle_cls=true \
+    --vis_font_path=/usr/share/fonts/truetype/freefont/FreeMono.ttf
+"""
+
 import os
 import sys
-
-__dir__ = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(__dir__)
-sys.path.append(os.path.abspath(os.path.join(__dir__, '../..')))
 
 os.environ["FLAGS_allocator_strategy"] = 'auto_growth'
 
@@ -25,13 +32,14 @@ import copy
 import numpy as np
 import time
 from PIL import Image
-import utility as utility
+from logging import getLogger as get_logger
+
 import predict_rec as predict_rec
 import predict_det as predict_det
 import predict_cls as predict_cls
-from ppocr.utils.utility import get_image_file_list, check_and_read_gif
-from ppocr.utils.logging import get_logger
+
 from utility import draw_ocr_box_txt
+import utility
 
 logger = get_logger()
 
@@ -140,21 +148,20 @@ def sorted_boxes(dt_boxes):
 
 
 def main(args):
-    image_file_list = get_image_file_list(args.image_dir)
     text_sys = TextSystem(args)
     is_visualize = True
     font_path = args.vis_font_path
     drop_score = args.drop_score
-    for image_file in image_file_list:
-        img, flag = check_and_read_gif(image_file)
-        if not flag:
-            img = cv2.imread(image_file)
+    image_file = args.image_path
+
+    if True:
+        img = cv2.imread(image_file)
         #img = utility.resize_img(img, 640)
         #img = utility.padding_img(img, [640,640])
         print(img.shape)
         if img is None:
             logger.info("error in loading image:{}".format(image_file))
-            continue
+            return
         starttime = time.time()
         dt_boxes, rec_res = text_sys(img)
         elapse = time.time() - starttime
@@ -163,6 +170,7 @@ def main(args):
         for text, score in rec_res:
             logger.info("{}, {:.3f}".format(text, score))
 
+        print("[+] OCR results: ", rec_res)
         if is_visualize:
             image = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
             boxes = dt_boxes

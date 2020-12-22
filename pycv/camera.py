@@ -85,12 +85,13 @@ class UsbCamera(ICamera):
 
     def set_resolution(self, resolution):
         """ resolution格式: [width, height] """
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
+        print(">>>", resolution)
         try:
             self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc('M','J','P','G'))
         except AttributeError:  # if cv2.__version__ <= "3.2.0"
             self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M','J','P','G'))
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
 
         logger.info("[+] 摄像头像素设定为【{}x{}】".format(
                 self.cap.get(cv2.CAP_PROP_FRAME_WIDTH),

@@ -9,10 +9,13 @@ import cv2
 from camera import UsbCamera
 from predict_system import *
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 dict_args = {
-    "det_model_dir": "./onnx/det_db/model.onnx",
-    "cls_model_dir": "./onnx/cls/model.onnx",
-    "rec_model_dir": "./onnx/rec_crnn/model.onnx",
+    "det_model_dir": "./models/onnx/det_db/model.onnx",
+    "cls_model_dir": "./models/onnx/cls/model.onnx",
+    "rec_model_dir": "./models/onnx/rec_en_crnn/model.onnx",
 
     # params for prediction engine
     "use_gpu": True,
@@ -42,10 +45,12 @@ dict_args = {
     # params for text recognizer
     "rec_algorithm": 'CRNN',
     "rec_image_shape": "3, 32, 320",
-    "rec_char_type": 'ch',
+    # "rec_char_type": 'ch',
+    "rec_char_type": 'EN',
     "rec_batch_num": 6,
     "max_text_length": 25,
-    "rec_char_dict_path": "./ppocr/ppocr_keys_v1.txt",
+    # "rec_char_dict_path": "./ppocr/ppocr_keys_v1.txt",  # 中英文
+    "rec_char_dict_path": "./ppocr/en_dict.txt",  # 英文
     "use_space_char": True,
     "drop_score": 0.5,
 
@@ -63,9 +68,13 @@ from collections import namedtuple
 PaddleOcrArgs = namedtuple("PaddleOcrArgs", dict_args)
 ocr_args = PaddleOcrArgs(**dict_args)
 
-text_sys = TextSystem(ocr_args)
+text_sys = None  # TextSystem(ocr_args)
 
 def img_proc(im):
+    global text_sys
+    if not text_sys:
+        text_sys = TextSystem(ocr_args)
+
     starttime = time.time()
     dt_boxes, rec_res = text_sys(im)
     print(">>> Predict time: %.3fs\n[+] " % (time.time() - starttime), end="")

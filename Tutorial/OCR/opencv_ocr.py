@@ -1,5 +1,7 @@
 # [OpenCV_sample: dnn/text_detection.py](https://github.com/opencv/opencv/blob/master/samples/dnn/text_detection.py)
 
+# Usage: python3 opencv_ocr.py --input images/lebron_james.jpg --model weights/frozen_east_text_detection.pb --ocr weights/crnn.onnx
+
 '''
 Text detection model: https://github.com/argman/EAST
 Download link: https://www.dropbox.com/s/r2ingd0l3zt8hxs/frozen_east_text_detection.tar.gz?dl=1
@@ -9,6 +11,7 @@ Using classes from here: https://github.com/meijieru/crnn.pytorch/blob/master/mo
 More converted onnx text recognition models can be downloaded directly here:
 Download link: https://drive.google.com/drive/folders/1cTbQ3nuZG-EKWak6emD_s8_hHXWz7lAr?usp=sharing
 And these models taken from here:https://github.com/clovaai/deep-text-recognition-benchmark
+
 import torch
 from models.crnn import CRNN
 model = CRNN(32, 1, 37, 256)
@@ -152,22 +155,32 @@ if __name__ == "__main__":
 
     # Create a new named window
     kWinName = "EAST: An Efficient and Accurate Scene Text Detector"
-    cv.namedWindow(kWinName, cv.WINDOW_NORMAL)
-    outNames = []
-    outNames.append("feature_fusion/Conv_7/Sigmoid")
-    outNames.append("feature_fusion/concat_3")
+    run_in_terminal = False
+    try:
+        cv.namedWindow(kWinName, cv.WINDOW_NORMAL)
+    except cv.error:
+        run_in_terminal = True
 
-    # Open a video file or an image file or a camera stream
-    cap = cv.VideoCapture(args.input if args.input else 0)
+    outNames = [
+        "feature_fusion/Conv_7/Sigmoid",
+        "feature_fusion/concat_3"
+    ]
 
     tickmeter = cv.TickMeter()
-    while cv.waitKey(1) < 0:
-        # Read frame
-        hasFrame, frame = cap.read()
-        if not hasFrame:
-            cv.waitKey()
-            break
+    if args.input:
+        frame = cv.imread(args.input)
+        """
+        else:
+        # Open a video file or an image file or a camera stream
+        cap = cv.VideoCapture(args.input if args.input else 0)
 
+        while cv.waitKey(1) < 0:
+            # Read frame
+            hasFrame, frame = cap.read()
+            if not hasFrame:
+                cv.waitKey()
+                break
+        """
         # Get frame height and width
         height_ = frame.shape[0]
         width_ = frame.shape[1]
@@ -191,6 +204,8 @@ if __name__ == "__main__":
 
         # Apply NMS
         indices = cv.dnn.NMSBoxesRotated(boxes, confidences, confThreshold, nmsThreshold)
+        if run_in_terminal:
+            results = []
         for i in indices:
             # get 4 corners of the rotated rect
             vertices = cv.boxPoints(boxes[i[0]])
@@ -215,8 +230,11 @@ if __name__ == "__main__":
 
                 # decode the result into text
                 wordRecognized = decodeText(result)
-                cv.putText(frame, wordRecognized, (int(vertices[1][0]), int(vertices[1][1])), cv.FONT_HERSHEY_SIMPLEX,
-                           0.5, (255, 0, 0))
+                if run_in_terminal:
+                    results.append(wordRecognized)
+                else:
+                    cv.putText(frame, wordRecognized, (int(vertices[1][0]), int(vertices[1][1])),
+                               cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0))
 
             for j in range(4):
                 p1 = (vertices[j][0], vertices[j][1])
@@ -225,8 +243,12 @@ if __name__ == "__main__":
 
         # Put efficiency information
         label = 'Inference time: %.2f ms' % (tickmeter.getTimeMilli())
-        cv.putText(frame, label, (0, 15), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0))
+        if not run_in_terminal:
+            cv.putText(frame, label, (0, 15), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0))
 
         # Display the frame
-        cv.imshow(kWinName, frame)
+        if run_in_terminal:
+            print("识别结果：\n", results, "\n", label)
+        else:
+            cv.imshow(kWinName, frame)
         tickmeter.reset()

@@ -26,8 +26,10 @@ except Exception:
 
 
 class ICamera:
-    def __init__(self, ip):
+    def __init__(self):
         """ 设置相机序号或GigE的IP地址 """
+        self.isRGB = True
+        self.fps_err = False
     def set_fps(self, fps:int):
         """ 设置帧率 """
     def set_resolution(self, resolution):
@@ -43,10 +45,9 @@ class ICamera:
 
 class UsbCamera(ICamera):
     def __init__(self, n):
+        super().__init__()
         self.cap = cv2.VideoCapture(n)  # n, cv2.CAP_DSHOW
         assert self.cap.isOpened()
-        self.isRGB = True
-        self.fps_err = False
 
     def set_fps(self, fps:int=0):
         if not fps:
@@ -108,6 +109,7 @@ class UsbCamera(ICamera):
 class HikCamera(ICamera):
     def __init__(self, n=None):
         assert ENABLE_MODULE_HIKVISION
+        super().__init__()
 
         SDKVersion = MvCamera.MV_CC_GetSDKVersion()
         print ("SDKVersion[0x%x]" % SDKVersion)

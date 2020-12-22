@@ -17,7 +17,7 @@ import script
 
 TessEnv = {
     # "TesseractBinPath": "D:/programs/Tesseract",
-    "TessDataDir": "/home/brt/ws/ipynb/Tutorial/tesseract/tessdata",
+    "TessDataDir": "/home/brt/workspace/ipynb/Tutorial/tesseract/tessdata",
     # "TessDataDir": "D:/Home/workspace/ipynb/Tutorial/tesseract/tessdata",
     "Lang": "eng"
 }
@@ -25,8 +25,8 @@ TessEnv = {
 class MainWnd(OcrEngineMixin, BaseCvWnd):
     statusbar_msg = '请移动画面，将字符置于识别框中'
 
-    def __init__(self, parent, camera_idx=0, solution=None, isRGB=False):
-        super().__init__(parent, camera_idx, solution, isRGB)
+    def __init__(self, parent, camera_idx=0, solution=None, fps=0, isRGB=False):
+        super().__init__(parent, camera_idx, solution, fps, isRGB)
         loadUi("ui/wx_mwnd_with_ctrllers.ui", self)
         super()._setup_ui()
 
@@ -92,4 +92,4 @@ class MainWnd(OcrEngineMixin, BaseCvWnd):
 
 
 # run_qtapp(SimpleOCR)
-run_qtapp(MainWnd, None, camera_idx=-1, solution=[800,600])
+run_qtapp(MainWnd, None, camera_idx=0, fps=15, solution=[800,600])

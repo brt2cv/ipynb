@@ -16,8 +16,8 @@ import script
 
 
 class MainWnd(BaseCvWnd):
-    def __init__(self, parent, camera_idx=0, solution=None, isRGB=False):
-        super().__init__(parent, camera_idx, solution, isRGB)
+    def __init__(self, parent, camera_idx=0, solution=None, fps=0, isRGB=False):
+        super().__init__(parent, camera_idx, solution, fps, isRGB)
         loadUi("ui/wx_mwnd_with_ctrllers.ui", self)
         super()._setup_ui()
         self.setWindowTitle("OpenCV 图像处理")
@@ -70,6 +70,7 @@ if __name__ == "__main__":
         parser.add_argument("-c", "--color_RGB", action="store_true", help="使用彩色相机并通过RGB输出")
         parser.add_argument("-r", "--camera-resolution", action="store", default="640x480", help="相机分辨率设置，格式: 640x480")
         # parser.add_argument("-R", "--window_resolution", action="store", help="窗口显示分辨率设置，格式: 800x600")
+        parser.add_argument("-f", "--fps", action="store", type=int, default=0, help="设置相机的帧率")
         return parser.parse_args()
 
     args = getopt()
@@ -78,4 +79,4 @@ if __name__ == "__main__":
     img_size = [int(i) for i in args.camera_resolution.split("x")]
     print(">>> 使用【{}】模式".format("彩色" if args.color_RGB else "灰度"))
 
-    run_qtapp(MainWnd, None, camera_idx, solution=img_size, isRGB=args.color_RGB)
+    run_qtapp(MainWnd, None, camera_idx, solution=img_size, fps=args.fps, isRGB=args.color_RGB)

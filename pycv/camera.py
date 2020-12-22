@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-# @Date    : 2020-12-15
+# @Date    : 2020-12-23
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.3.1
+# @Version : 0.3.2
 
+from time import sleep
 import numpy as np
 import cv2
 
@@ -20,13 +21,15 @@ try:
     from pycv.HikVision.MvCameraControl_class import *
     import threading
     ENABLE_MODULE_HIKVISION = True
-except ImportError:
+except Exception:
     ENABLE_MODULE_HIKVISION = False
 
 
 class ICamera:
     def __init__(self, ip):
         """ 设置相机序号或GigE的IP地址 """
+    def set_fps(self, fps:int):
+        """ 设置帧率 """
     def set_resolution(self, resolution):
         """ 设置分辨率 """
     def set_format(self, isRGB):
@@ -40,15 +43,32 @@ class ICamera:
 
 class UsbCamera(ICamera):
     def __init__(self, n):
-        self.cap = cv2.VideoCapture(n)
+        self.cap = cv2.VideoCapture(n)  # n, cv2.CAP_DSHOW
         assert self.cap.isOpened()
         self.isRGB = True
+        self.fps_err = False
+
+    def set_fps(self, fps:int=0):
+        if not fps:
+            return
+        # self.cap.set(cv2.CAP_PROP_FPS, fps)  # 测试无效，反而导致取图失败
+        curr_fps = self.cap.get(cv2.CAP_PROP_FPS)  # 测试并不准确……额
+        curr_fps = 60; print(">>> 由于OpenCV::cap.get(cv2.CAP_PROP_FPS)不准确，定义curr_fps估计值:", curr_fps)
+        if fps < curr_fps:
+            # self.fps_err = int(round(curr_fps / fps))  # 每隔fps_err帧显示一张图
+            self.fps_err = 1/fps  # sleep(fps_err)
+            print("[!] 帧率设置失败，尝试通过减少图像传输来降低帧率:", self.fps_err)
+        else:
+            if fps > curr_fps:
+                print(">>> 不支持设置的高帧率，当前帧率为:", curr_fps)
+            else:
+                print(">>> 当前帧率设置为:", curr_fps)
+            self.fps_err = False
 
     def set_resolution(self, resolution):
         """ resolution格式: [width, height] """
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
-        # self.cap.set(cv2.CAP_PROP_FPS, 1)  # 测试无效
         try:
             self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc('M','J','P','G'))
         except AttributeError:  # if cv2.__version__ <= "3.2.0"
@@ -201,8 +221,9 @@ class Qt5Camera(QObject, Thread):
         self.isRunning.set()
         self.isPause = Event()
 
-    def conn_uvc(self, n, resolution=None, isRGB=False):
+    def conn_uvc(self, n, resolution=None, fps=0, isRGB=False):
         self.camera = UsbCamera(n)
+        self.camera.set_fps(fps)
         self.camera.set_format(isRGB)
         self.camera.set_resolution(resolution if resolution else [640, 480])
 
@@ -222,9 +243,21 @@ class Qt5Camera(QObject, Thread):
 
     def run(self):
         logger.debug("启动Camera图像传输线程...")
+        # fps_idx = 1
         while self.isRunning.is_set():
             if self.isPause.is_set():
                 return
+
+            # 如果帧率设置失败，手动降低显示速度
+            if self.camera.fps_err:
+                # print(">>>", self.camera.fps_err, fps_idx)
+                # if fps_idx < self.camera.fps_err:
+                #     fps_idx += 1
+                #     continue
+                # else:
+                #     fps_idx = 1
+                sleep(self.camera.fps_err)
+
             try:
                 im_frame = self.camera.take_snapshot()
                 if im_frame is None:

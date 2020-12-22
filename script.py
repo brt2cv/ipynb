@@ -20,15 +20,19 @@ def improc_origin(im, *args):
     # print(">>", im.shape)
     # return im
     im_resize = cv.resize(im, (800,600))
+
+    # 生成图像序号
     cv.draw_string(im_resize, 30, 30, f"index={g['index']}", color=0)
     g["index"] += 1
-    print(">>", g["index"])
+    # print(">>", g["index"])
+
     return im_resize
 
 def improc_right(im, *args):
     return cv.threshold(im, args[0])
 
 def improc_roi(im, *args):
+    return im
     # im_h, im_w = im.shape[:2]
     # w, h = 352, 100
     # left, right = int(args[1]/255 * im_w), int(args[2]/255 * im_h)

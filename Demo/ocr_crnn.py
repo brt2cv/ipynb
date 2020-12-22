@@ -100,7 +100,15 @@ class OpencvDnnMixin:
     def ocr_init(self, det_model, rec_model, resize_to=(320,320), conf_thresh=0.5, nms_thresh=0.4):
         # Load network
         self.detector = cv2.dnn.readNet(det_model)
+        # 使用GPU加速
+        self.detector.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+        self.detector.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+
         self.recognizer = cv2.dnn.readNet(rec_model)
+        # 使用GPU加速
+        self.recognizer.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+        self.recognizer.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+
         self.outNames = [
             "feature_fusion/Conv_7/Sigmoid",
             "feature_fusion/concat_3"

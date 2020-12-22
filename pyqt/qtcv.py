@@ -123,7 +123,7 @@ import traceback
 class BaseCvWnd(QWidget):
     statusbar_msg = 'Welcome'
 
-    def __init__(self, parent, camera_idx=0, solution=None, isRGB=False, roi=None):
+    def __init__(self, parent, camera_idx=0, solution=None, fps=0, isRGB=False, roi=None):
         super().__init__(parent)
 
         self.isPaused = False
@@ -135,9 +135,9 @@ class BaseCvWnd(QWidget):
         if camera_idx < 0:
             self.camera.conn_hik(None)
         else:
-            self.camera.conn_uvc(camera_idx, solution, isRGB)
+            self.camera.conn_uvc(camera_idx, solution, fps, isRGB=isRGB)
 
-        # self._setup_ui()
+        # self._setup_ui()  # 留待子类传入ui后调用 ??
         self.define_improc()
         self.camera.dataUpdated.connect(self.update_frame)
         self.camera.readError.connect(self.close)
@@ -184,7 +184,7 @@ border-radius: 6px;
         """ 由于关乎可变脚本script，故需要在子类重写 """
         # reload(script)
         # self.status_bar.showMessage("预处理脚本已更新")
-        raise NotADirectoryError()
+        raise NotImplementedError()
 
     def camera_pause(self):
         self.isPaused = not self.isPaused
@@ -206,7 +206,7 @@ border-radius: 6px;
         #     "window2": script.improc,  # make_right
         #     "parse_roi": None,
         # }
-        raise NotADirectoryError()
+        raise NotImplementedError()
 
     def update_frame(self, im_arr):
         if self.isPaused:

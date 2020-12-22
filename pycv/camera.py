@@ -54,11 +54,11 @@ class UsbCamera(ICamera):
             return
         # self.cap.set(cv2.CAP_PROP_FPS, fps)  # 测试无效，反而导致取图失败
         curr_fps = self.cap.get(cv2.CAP_PROP_FPS)  # 测试并不准确……额
-        curr_fps = 60; print(">>> 由于OpenCV::cap.get(cv2.CAP_PROP_FPS)不准确，定义curr_fps估计值:", curr_fps)
+        # curr_fps = 60; print(">>> 由于OpenCV::cap.get(cv2.CAP_PROP_FPS)不准确，定义curr_fps估计值:", curr_fps)
         if fps < curr_fps:
             # self.fps_err = int(round(curr_fps / fps))  # 每隔fps_err帧显示一张图
             self.fps_err = 1/fps  # sleep(fps_err)
-            print("[!] 帧率设置失败，尝试通过减少图像传输来降低帧率:", self.fps_err)
+            print(f"[!] 帧率设置失败，尝试通过减少图像传输来降低帧率: 每隔{round(self.fps_err, 2)}s取一帧图像")
         else:
             if fps > curr_fps:
                 print(">>> 不支持设置的高帧率，当前帧率为:", curr_fps)

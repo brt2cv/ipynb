@@ -49,7 +49,7 @@ class MainWnd(OcrEngineMixin, BaseCvWnd):
             "parse_ocr": script.improc_roi,
         }
 
-    def ocr_result(self, result):
+    def ocr_post(self, result):
         # logger.debug(">>> OCR: {}".format(result))
         list_text = result.split("\n", 1)
         if not list_text:

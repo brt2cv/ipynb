@@ -312,20 +312,27 @@ class TesseractThread(QObject, Thread, OcrEngine):
 
 
 class OcrEngineMixin:
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
+    def ocr_init(self):
+        """ 初始化OCR引擎 """
+    def ocr_exec(self, im_arr):
+        """ OCR识别的过程 """
+    def ocr_post(self, result):
+        """ 回调函数，当ocr_exec()异步执行时，用该方法捕获result结果 """
+
+class TesseractEngineMixin(OcrEngineMixin):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def ocr_init(self, dir_tessdata, lang):
         self.ocr_engine = TesseractThread(dir_tessdata, lang)
-        self.ocr_engine.textRecognized.connect(self.ocr_result)
+        self.ocr_engine.textRecognized.connect(self.ocr_post)
         self.ocr_engine.start()
 
     def ocr_exec(self, im_arr):
         """ 异步处理，故而无返回值 """
         self.ocr_engine.ndarray2text(im_arr)
 
-    def ocr_result(self, result):
-        """ 回调函数，用于处理result结果 """
+    def ocr_post(self, result):
         logger.debug(">>> OCR: {}".format(result))
         # msg = f'OCR识别结果: {result}' if result else self.statusbar_msg
         # self.status_bar.showMessage(msg)
@@ -396,7 +403,7 @@ if __name__ == "__main__":
             return result
 
 
-    class MainWnd(OcrEngineMixin, BaseCvWnd):
+    class MainWnd(TesseractEngineMixin, BaseCvWnd):
         statusbar_msg = '请移动画面，将字符置于识别框中'
 
         def __init__(self, parent, camera_idx=0, solution=None, isRGB=False):
@@ -419,7 +426,7 @@ if __name__ == "__main__":
                 "parse_roi": script.improc_ocr,
             }
 
-        def ocr_result(self, result):
+        def ocr_post(self, result):
             # logger.debug(">>> OCR: {}".format(result))
             msg = f'OCR识别结果: {result}' if result else self.statusbar_msg
             self.status_bar.showMessage(msg)

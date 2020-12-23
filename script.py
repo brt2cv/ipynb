@@ -11,6 +11,11 @@ g = {
 import numpy as np
 import pycv.opencv as cv
 
+import cv2
+_FaceClassifier = cv2.CascadeClassifier("/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml" )
+
+import face_recognition
+
 class UtilFaker:
     def imshow(self, *args, **kwargs):
         """ 不显示图像 """
@@ -28,8 +33,26 @@ def improc_origin(im, *args):
 
     return im_resize
 
+def face_recognize(im):
+    faceRects = _FaceClassifier.detectMultiScale(im, scaleFactor=1.2, minNeighbors=3, minSize=(32, 32))
+    if len(faceRects):
+        for faceRect in faceRects:
+            x, y, w, h = faceRect
+            cv2.rectangle(im, (x, y), (x + h, y + w), (0, 255, 0), 2)
+    return im
+
+def face_recognize2(im):
+    # face_recognition.load_image_file(im)
+    face_locations = face_recognition.face_locations(im)
+    print(type(face_locations), face_locations)
+    for loc in face_locations:
+        h0, h1, w0, w1 = loc
+        cv.draw_rect2(im, (w0, h0), (w1, h1))
+    return im
+
 def improc_right(im, *args):
-    return cv.threshold(im, args[0])
+    return face_recognize2(im)
+    # return im
 
 def improc_roi(im, *args):
     return im

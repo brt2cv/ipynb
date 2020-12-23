@@ -32,7 +32,7 @@ class MainWnd(BaseCvWnd):
         """ 由于关乎可变脚本script，故需要在子类重写 """
         self.improc_methods = {
             "window1": script.improc_origin,
-            "window2": script.improc_roi,  # make_right
+            "window2": script.improc_right,
         }
 
     def update_frame(self, im_arr):

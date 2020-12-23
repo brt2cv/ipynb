@@ -31,7 +31,7 @@ HyperParameters = namedtuple("HyperParameters", [
         "log_interval"])  # how many batches to wait before logging training status
 
 args = HyperParameters(**{
-    "use_cuda": False,
+    "use_cuda": True,
     "save_model": True,
     "seed": 1234,
     "batch_size": 64,

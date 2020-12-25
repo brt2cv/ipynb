@@ -11,12 +11,15 @@ from .MvErrorDefine_const import *
 from .PixelType_const import *
 from .PixelType_header import *
 
-MvCamCtrldll = cdll.LoadLibrary("{}/{}/libMvCameraControl.so".format(
-    os.getenv('MVCAM_COMMON_RUNENV'), {
-        "AMD64": "Libraries/win64",  # windows_x64
+_UNAME_M = platform.machine()
+if _UNAME_M == "AMD64":
+    libMvCamera = "MvCameraControl.dll"
+else:
+    libMvCamera = os.path.join(os.getenv('MVCAM_COMMON_RUNENV'), {
         "x86_64": "64",  # Linux_x64
         "aarch64": "aarch64"
-    }[platform.machine()]))
+    }[_UNAME_M], "libMvCameraControl.so")
+MvCamCtrldll = cdll.LoadLibrary(libMvCamera)
 
 # 用于回调函数传入相机实例
 class _MV_PY_OBJECT_(Structure):

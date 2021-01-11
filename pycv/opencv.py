@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# @Date    : 2020-12-18
+# @Date    : 2021-01-12
 # @Author  : Bright Li (brt2@qq.com)
 # @Link    : https://gitee.com/brt2
-# @Version : 0.2.11
+# @Version : 0.2.12
 
 import os
 import platform
@@ -88,7 +88,7 @@ def new(shape, value=0, dtype="uint8"):
     if value == 0:
         return np.zeros(shape, dtype)
     else:
-        return np.ones(shape, dtype) * valued
+        return np.ones(shape, dtype) * value
 
 def project(im_bin, axis):
     return np.any(im_bin, axis)
@@ -1080,3 +1080,21 @@ HSV_COLOR = {  # ["hmin", "hmax", "smin", "smax", "vmin", "vmax"]
     "blue": [100, 124, 43, 255, 46, 255],
     "purple": [125, 155, 43, 255, 46, 255],
 }
+
+def hsv_range(img_hsv, color_range):
+    """ color_range: [156, 10, 43, 255, 46, 255], 也支持使用预定义色值: "red", "black"
+    """
+    array_low = np.array([v for i, v in enumerate(color_range) if i % 2 == 0])
+    array_high = np.array([v for i, v in enumerate(color_range) if i % 2])
+
+    if array_low[0] <= array_high[0]:
+        mask = cv2.inRange(img_hsv, array_low, array_high)
+    else:
+        array_low_0 = array_low.copy()
+        array_low_0[0] = 0
+        array_high_180 = array_high.copy()
+        array_high_180[0] = 180
+        mask0 = cv2.inRange(img_hsv, array_low, array_high_180)
+        mask1 = cv2.inRange(img_hsv, array_low_0, array_high)
+        mask = cv2.add(mask0, mask1)
+    return mask

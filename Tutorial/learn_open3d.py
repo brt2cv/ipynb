@@ -11,7 +11,17 @@ import open3d as o3d
 # pcd = o3d.io.read_point_cloud(uu.rpath("open3d_/bunny_simp.pcd"))
 pcd = o3d.io.read_point_cloud(uu.rpath("open3d_/bunny.ply"))
 print(pcd)
+
+# %% 在独立的窗口中显示模型
 o3d.visualization.draw_geometries([pcd])
+
+# %% 在jupyter中显示模型
+from open3d import JVisualizer
+# from open3d.j_visualizer import JVisualizer
+
+visualizer = JVisualizer()
+visualizer.add_geometry(pcd)
+visualizer.show()
 
 # %% 上色
 pcd.paint_uniform_color([255,0,0])
@@ -80,3 +90,7 @@ o3d.visualization.draw_geometries([pcd])
 
 voxel_grid = o3d.geometry.VoxelGrid.create_from_point_cloud(pcd, voxel_size=0.05)
 o3d.visualization.draw_geometries([voxel_grid])
+
+# %% 另存模型
+o3d.io.write_point_cloud(uu.rpath("open3d_/bunny_simp.ply"), pcd)
+o3d.io.write_triangle_mesh("copy_of_pcd.ply", mesh)

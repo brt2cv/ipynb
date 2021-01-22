@@ -16,8 +16,10 @@ print(pcd)
 o3d.visualization.draw_geometries([pcd])
 
 # %% 在jupyter中显示模型
-from open3d import JVisualizer
-# from open3d.j_visualizer import JVisualizer
+try:
+    from open3d import JVisualizer
+except ImportError:
+    from open3d.j_visualizer import JVisualizer
 
 visualizer = JVisualizer()
 visualizer.add_geometry(pcd)
@@ -94,3 +96,68 @@ o3d.visualization.draw_geometries([voxel_grid])
 # %% 另存模型
 o3d.io.write_point_cloud(uu.rpath("open3d_/bunny_simp.ply"), pcd)
 o3d.io.write_triangle_mesh("copy_of_pcd.ply", mesh)
+
+# %% 用户交互：裁剪
+
+# 1) Press 'Y' twice to align geometry with negative direction of y-axis
+# 2) Press 'K' to lock screen and to switch to selection mode
+# 3) Drag for rectangle selection, or use ctrl + left click for polygon selection
+# 4) Press 'C' to get a selected geometry and to save it
+# 5) Press 'F' to switch to freeview mode
+
+pcd = o3d.io.read_point_cloud(uu.rpath("open3d_/bunny.ply"))
+o3d.visualization.draw_geometries_with_editing([pcd])
+
+# %% 用户交互：手动ICP配准
+
+# 1) Please pick at least three correspondences using [shift + left click]
+#    Press [shift + right click] to undo point picking
+# 2) After picking points, press 'Q' to close the window
+
+import numpy as np
+import copy
+
+def draw_registration_result(source, target, transformation):
+    source_temp = copy.deepcopy(source)
+    target_temp = copy.deepcopy(target)
+    source_temp.paint_uniform_color([1, 0.706, 0])
+    target_temp.paint_uniform_color([0, 0.651, 0.929])
+    source_temp.transform(transformation)
+    o3d.visualization.draw_geometries([source_temp, target_temp])
+
+def pick_points(pcd):
+    vis = o3d.visualization.VisualizerWithEditing()
+    vis.create_window()
+    vis.add_geometry(pcd)
+    vis.run()  # user picks points
+    vis.destroy_window()
+    return vis.get_picked_points()
+
+print("Demo for manual ICP")
+source = o3d.io.read_point_cloud("/d/Home/workspace/MCAD/vision3D//ICP/cloud_bin_0.pcd")
+target = o3d.io.read_point_cloud("/d/Home/workspace/MCAD/vision3D/ICP/cloud_bin_2.pcd")
+print("Visualization of two point clouds before manual alignment")
+draw_registration_result(source, target, np.identity(4))
+
+# pick points from two point clouds and builds correspondences
+picked_id_source = pick_points(source)
+picked_id_target = pick_points(target)
+assert (len(picked_id_source) >= 3 and len(picked_id_target) >= 3)
+assert (len(picked_id_source) == len(picked_id_target))
+corr = np.zeros((len(picked_id_source), 2))
+corr[:, 0] = picked_id_source
+corr[:, 1] = picked_id_target
+
+# estimate rough transformation using correspondences
+print("Compute a rough transform using the correspondences given by user")
+p2p = o3d.pipelines.registration.TransformationEstimationPointToPoint()
+trans_init = p2p.compute_transformation(source, target,
+                                        o3d.utility.Vector2iVector(corr))
+
+# point-to-point ICP for refinement
+print("Perform point-to-point ICP refinement")
+threshold = 0.03  # 3cm distance threshold
+reg_p2p = o3d.pipelines.registration.registration_icp(
+    source, target, threshold, trans_init,
+    o3d.pipelines.registration.TransformationEstimationPointToPoint())
+draw_registration_result(source, target, reg_p2p.transformation)

@@ -60,7 +60,7 @@ def imread_byImageio(uri, **kwargs):
         kwargs["as_gray"] = False
     return imageio.imread(uri, **kwargs)
 
-def imread(uri, as_gray=True):
+def imread(uri, as_gray=False):
     if DEBUG_MODE:
         assert os.path.exists(uri)
 

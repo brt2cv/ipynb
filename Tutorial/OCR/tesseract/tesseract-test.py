@@ -4,10 +4,10 @@
 
 # %%
 import ipyenv as uu
-# uu.enpy("opencv")
-uu.reload(cv)
+uu.enpy("img")
+# uu.reload(cv)
 
-# %%
+# %% 使用Tesseract检测
 from PIL import Image
 import pycv.pillow as cv
 

@@ -161,3 +161,106 @@ reg_p2p = o3d.pipelines.registration.registration_icp(
     source, target, threshold, trans_init,
     o3d.pipelines.registration.TransformationEstimationPointToPoint())
 draw_registration_result(source, target, reg_p2p.transformation)
+
+# %% 深度图
+import ipyenv as uu
+uu.enpy("img")
+
+import cv2
+import numpy as np
+import pycv.opencv as cv
+
+uu.chdir(__file__)
+
+# %%
+img_dep = cv.imread(uu.rpath("open3d_/box.png"))
+
+# %% 深度图转点云
+def depth_to_pcloud(img_dep, tab_x, tab_y):
+    pc = np.zeros((np.size(img_dep), 3))
+    pc[:, 0] = img_dep.flatten() * tab_x
+    pc[:, 1] = img_dep.flatten() * tab_y
+    pc[:, 2] = img_dep.flatten()
+    return pc
+
+# 防止出现除数为零的情况
+ToF_CAM_EPS = 1.0e-16
+## 计算速算表
+# tab_x[u,v]=(u-u0)*fx
+# tab_y[u,v]=(v-v0)*fy
+# 通过速算表，计算像素位置(u,v)对应的物理坐标(x,y,z)
+# x=tab_x[u,v]*z, y=tab_y[u,v]*z
+# 注意：为了方便使用，tab_x和tab_y矩阵被拉直成向量存放
+def gen_tab(cx,cy,fx,fy,img_hgt,img_wid):
+    u = (np.arange(IMG_WID) - cx) / fx
+    v = (np.arange(img_hgt) - cy) / fy
+    tab_x = np.tile(u, img_hgt)
+    tab_y = np.repeat(v, img_wid)
+    return tab_x,tab_y
+
+# 深度图转点云
+tab_x,tab_y = gen_tab(160,120,180,180,240,320)
+pointcloud = depth_to_pcloud(img_dep, tab_x, tab_y)
+
+# %% 保存pcd文件
+with open(uu.rpath("open3d_/box2pcd2.pcd"), "w") as handle:
+    # 得到点云点数
+    point_num = pointcloud.shape[0]
+    # pcd头部（重要）
+    handle.write(
+f'# .PCD v0.7 - Point Cloud Data file format\n\
+VERSION 0.7\n\
+FIELDS x y z\n\
+SIZE 4 4 4\n\
+TYPE F F F\n\
+COUNT 1 1 1\n\
+WIDTH {point_num}\n\
+HEIGHT 1\n\
+VIEWPOINT 0 0 0 1 0 0 0\n\
+POINTS {point_num}\n\
+DATA ascii')
+    # 依次写入点
+    for i in range(point_num):
+        handle.write(f"\n{pointcloud[i, 0]} {pointcloud[i, 1]} {str(pointcloud[i, 2]}")
+
+# %% 点云转深度图
+def pcloud_to_depth(pc,cx,cy,fx,fy,img_hgt,img_wid):
+    # 计算点云投影到传感器的像素坐标
+    x, y, z = pc[:, 0], pc[:, 1], pc[:, 2]
+    u = (np.round(x * fx / (z + ToF_CAM_EPS) + cx)).astype(int)
+    v = (np.round(y * fy / (z + ToF_CAM_EPS) + cy)).astype(int)
+
+    valid = np.bitwise_and(np.bitwise_and((u >= 0), (u <img_wid)), np.bitwise_and((v >= 0), (v <img_hgt)))
+    u_valid = u[valid]
+    v_valid = v[valid]
+    z_valid = z[valid]
+
+    img_dep = np.zeros((img_hgt, img_wid))
+    for ui, vi, zi in zip(u_valid, v_valid, z_valid):
+        # 替代0像素值点
+        img_dep[vi][ui] = max(img_dep[vi][ui], zi)
+    return img_dep
+
+img_cvt = pcloud_to_depth(pointcloud, 160,120,180,180,240,320)
+img_cvt = img_cvt.astype(np.uint8)
+uu.imshow(img_cvt)
+
+# %% 深度图时域滤波
+list_img = []
+for path in ["path_img_0", "path_img_1", "path_img_2"]:
+    img = cv.imread(path)
+    list_img.append(img)
+
+count = len(list_img)
+buf_dep = np.zeros((*list_img[0].shape, count))
+for idx in range(count):
+    buf_dep[:, :, idx] = list_img[idx]
+
+img_sum = np.sum(buf_dep,axis=2)
+img_max = np.max(buf_dep,axis=2)
+img_min = np.min(buf_dep,axis=2)
+
+img_filter = img_sum - img_max - img_min
+uu.imshow(img_filter)
+
+# %%

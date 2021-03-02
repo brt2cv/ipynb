@@ -4,7 +4,7 @@
 # @Link    : https://gitee.com/brt2
 # @Version : 0.3.2
 
-from time import sleep
+import time
 import numpy as np
 import cv2
 
@@ -49,12 +49,29 @@ class UsbCamera(ICamera):
         self.cap = cv2.VideoCapture(n)  # n, cv2.CAP_DSHOW
         assert self.cap.isOpened()
 
-    def set_fps(self, fps:int=0):
-        if not fps:
+    def __del__(self):
+        self.cap.release()
+        print("[+] 已正常关闭摄像头")
+
+    def set_fps(self, fps:int=0, precise_fps=False):
+        if fps <= 0:
             return
         # self.cap.set(cv2.CAP_PROP_FPS, fps)  # 测试无效，反而导致取图失败
-        curr_fps = self.cap.get(cv2.CAP_PROP_FPS)  # 测试并不准确……额
-        # curr_fps = 60; print(">>> 由于OpenCV::cap.get(cv2.CAP_PROP_FPS)不准确，定义curr_fps估计值:", curr_fps)
+
+        if precise_fps:
+            test_frames_num = 10
+            print(">>> 正在计算帧率，请稍等...")
+            start = time.time()
+            for _ in range(test_frames_num):
+                self.cap.read()
+            end = time.time()
+            curr_fps = test_frames_num / (end - start)
+            print("Estimated frames per second: {} / {} = {}".format(
+                  test_frames_num, (end - start), curr_fps))
+        else:
+            curr_fps = self.cap.get(cv2.CAP_PROP_FPS)  # OpenCV_v2.x版本中，使用cv2.CV_CAP_PROP_FPS
+            # curr_fps = 60; print(">>> 由于OpenCV::cap.get(cv2.CAP_PROP_FPS)不准确，定义curr_fps估计值:", curr_fps)
+
         if fps < curr_fps:
             # self.fps_err = int(round(curr_fps / fps))  # 每隔fps_err帧显示一张图
             self.fps_err = 1/fps  # sleep(fps_err)
@@ -68,12 +85,13 @@ class UsbCamera(ICamera):
 
     def set_resolution(self, resolution):
         """ resolution格式: [width, height] """
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
+        print(">>>", resolution)
         try:
             self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc('M','J','P','G'))
         except AttributeError:  # if cv2.__version__ <= "3.2.0"
             self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M','J','P','G'))
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
 
         logger.info("[+] 摄像头像素设定为【{}x{}】".format(
                 self.cap.get(cv2.CAP_PROP_FRAME_WIDTH),
@@ -258,7 +276,7 @@ class Qt5Camera(QObject, Thread):
                 #     continue
                 # else:
                 #     fps_idx = 1
-                sleep(self.camera.fps_err)
+                time.sleep(self.camera.fps_err)
 
             try:
                 im_frame = self.camera.take_snapshot()
@@ -271,7 +289,6 @@ class Qt5Camera(QObject, Thread):
                 logger.error(e)
                 self.isRunning.clear()
                 self.readError.emit()
-import time
 
 #####################################################################
 

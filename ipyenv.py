@@ -170,6 +170,22 @@ def chdir(__file__):
 def rpath(path_from_curdir):
     return os.path.join(curdir, path_from_curdir)
 
+# decorator
+def elapsed(func, msg="Consuming time"):
+    from time import time
+    def running(*args, **kwarg):
+        time_0 = time()
+        # str_0 = f"起始时刻：{ctime()}"
+        res = func(*args, **kwarg)
+        time_1 = time()
+        # str_1 = f"结束时刻：{ctime()}"
+
+        consuming = time_1 - time_0
+        print(f"[+] {msg}: {consuming}")  # {str_0}, {str_1},
+
+        return res
+    return running
+
 #####################################################################
 
 def input(string):

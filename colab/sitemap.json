@@ -1,0 +1,40 @@
+{
+    "_id": "huawei-phone",
+    "startUrl": ["https://consumer.huawei.com/cn/phones/?ic_medium=hwdc&ic_source=corp_header_consumer"],
+    "selectors": [
+        {
+            "id": "subpage",
+            "parentSelectors": ["_root"],
+            "type":"SelectorLink",
+            "selector":"a.product-block__title-link",
+            "multiple":true,
+            "delay":0
+        },
+        {
+            "id": "visit-params",
+            "parentSelectors": ["subpage"],
+            "type":"SelectorLink",
+            "selector":"a[title='规格参数']",
+            "multiple":false,
+            "delay":0
+        },
+        {
+            "id": "weight",
+            "parentSelectors": ["visit-params"],
+            "type":"SelectorText",
+            "selector":"div:nth-of-type(2) div.large-accordion__wrap:nth-of-type(1) p",
+            "multiple":false,
+            "delay":0,
+            "regex":""
+        },
+        {
+            "id": "size",
+            "parentSelectors": ["visit-params"],
+            "type":"SelectorText",
+            "selector":"div.large-accordion__inner--short:nth-of-type(1) > p:nth-of-type(1)",
+            "multiple":false,
+            "delay":0,
+            "regex":""
+        }
+    ]
+}

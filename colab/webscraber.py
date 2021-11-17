@@ -12,8 +12,6 @@ with open(uu.rpath("sitemap.json")) as fp:
     sitemap = json.load(fp)
 
 # %%
-from typing import List
-
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
 

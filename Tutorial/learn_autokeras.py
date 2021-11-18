@@ -37,8 +37,12 @@ print(">>", X_train.shape)
 # %%
 # Encode labels to one hot vectors (ex : 2 -> [0,0,1,0,0,0,0,0,0,0])
 from tensorflow.keras.utils import to_categorical
+
 y_train = to_categorical(y_train, num_classes=10)
-print(">>", y_train.shape)
+print(">>", y_train.shape, type(y_train))
+
+# %%
+y_train = train["label"].to_numpy()
 
 # %%
 # > [github: autokeras/examples/mnist.py](https://github.com/keras-team/autokeras/blob/master/examples/mnist.py)
@@ -49,4 +53,38 @@ clf = ak.ImageClassifier(max_trials=3)
 clf.fit(X_train, y_train, epochs=3)
 
 # print(f"Accuracy: {clf.evaluate(test)}")
+
+
+# %% Titanic
+import tensorflow as tf
+import autokeras as ak
+
+TRAIN_DATA_URL = r"file:///D:/Home/workspace/ipynb/Tutorial/titanic/train.csv"
+TEST_DATA_URL = r"file:///D:/Home/workspace/ipynb/Tutorial/titanic/test.csv"
+
+# Initialize the classifier.
+train_file_path = tf.keras.utils.get_file("train.csv", TRAIN_DATA_URL)
+test_file_path = tf.keras.utils.get_file("eval.csv", TEST_DATA_URL)
+
+# %%
+clf = ak.StructuredDataClassifier(
+    max_trials=10, directory="tmp_dir", overwrite=True
+)
+
+# %%
+import timeit
+
+start_time = timeit.default_timer()
+# x is the path to the csv file. y is the column name of the column to predict.
+clf.fit(train_file_path, "Survived")
+stop_time = timeit.default_timer()
+print(
+    "Total time: {time} seconds.".format(time=round(stop_time - start_time, 2))
+)
+
+# %%
+# Evaluate the accuracy of the found model.
+accuracy = clf.evaluate(test_file_path, "Survived")[1]
+print("Accuracy: {accuracy}%".format(accuracy=round(accuracy * 100, 2)))
+
 # %%

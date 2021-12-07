@@ -1,6 +1,4 @@
 /.vscode/
-data/
-demo
 desktop.ini
 
 env/
@@ -9,6 +7,8 @@ build/
 tmp/
 dist/
 user/
+data/
+kaggle-data/
 
 .ipynb_checkpoints/
 __pycache__/

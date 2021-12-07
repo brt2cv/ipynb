@@ -30,8 +30,8 @@ test = test / 255
 
 # %%
 # Reshape image in 3 dimensions (height = 28px, width = 28px , canal = 1)
-X_train = X_train.values.reshape(-1,28,28,1)
-test = test.values.reshape(-1, 28, 28, 1)
+X_train = X_train.values.reshape(-1,28,28)
+test = test.values.reshape(-1, 28, 28)
 print(">>", X_train.shape)
 
 # %%
@@ -50,7 +50,7 @@ import autokeras as ak
 clf = ak.ImageClassifier(max_trials=3)
 
 # %%
-clf.fit(X_train, y_train, epochs=3)
+clf.fit(X_train, y_train, epochs=10)
 
 # print(f"Accuracy: {clf.evaluate(test)}")
 
